@@ -32,7 +32,6 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Verify BuildKit connection
-        if: ${{ inputs.buildkit }}
         run: |
           nc -zv ${{ env.BUILDKIT_HOST }} ${{ env.BUILDKIT_PORT }}
 
