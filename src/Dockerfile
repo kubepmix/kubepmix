@@ -33,13 +33,14 @@ RUN apt-get update 1>/dev/null && apt-get install -y --no-install-recommends \
     libevent-dev libhwloc-dev zlib1g-dev 1>/dev/null \
     && rm -rf /var/lib/apt/lists/*
 
-COPY . /app
-WORKDIR /app
+COPY requirements.txt /app/requirements.txt
+RUN pip3 install -r /app/requirements.txt --break-system-packages 1>/dev/null
 
 COPY --from=pmix-build /usr/lib/python3/dist-packages/pmix* /app
 COPY --from=pmix-build /opt/pmix /opt/pmix
 
-RUN pip3 install -r /app/requirements.txt --break-system-packages 1>/dev/null
+COPY . /app
+WORKDIR /app
 
 ENV PYTHONUNBUFFERED=1
 ENV LD_LIBRARY_PATH=/opt/pmix/lib:$LD_LIBRARY_PATH
