@@ -11,7 +11,7 @@ export NAMESPACE=myns
 helm -n $NAMESPACE install --set scope=Namespace kubepmix ghcr.io/kubepmix/charts/kubepmix
 ```
 
-See Helm Chart's `README.md` for deployment details.
+See Helm Chart's [`README.md`](../charts/kubepmix/README.md) for deployment details.
 
 ### Deploy Job
 
