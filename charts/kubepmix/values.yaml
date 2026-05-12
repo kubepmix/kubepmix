@@ -1,0 +1,14 @@
+# Scope
+# Namespace - Mutate pods in the release namespace only & enforce NetworkPolicy
+# Cluster - Mutate pods in all namespaces
+scope: Cluster
+
+server:
+  image:
+    repository: ghcr.io/pmix/kubepmix
+    tag: latest
+  webhook:
+    port: 8443
+  pmix:
+    port: 3333
+    interface: eth0
