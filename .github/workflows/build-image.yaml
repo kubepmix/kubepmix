@@ -3,6 +3,11 @@ run-name: Build Container by ${{ github.actor }}
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "src/**"
 
 permissions:
   contents: read
