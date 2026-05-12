@@ -4,7 +4,7 @@ KubePMIx _injects_ MPI context into Kubernetes Job replicas. This scenario is de
 
 ### Install KubePMIx
 
-To get started, install namespace-scoped KubePMIx in your namespace:
+To get started, install namespace-scoped KubePMIx:
 
 ```bash
 export NAMESPACE=myns
