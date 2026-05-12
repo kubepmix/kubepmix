@@ -31,10 +31,6 @@ jobs:
             type=semver,pattern={{version}}
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Verify BuildKit connection
-        run: |
-          nc -zv ${{ env.BUILDKIT_HOST }} ${{ env.BUILDKIT_PORT }}
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
         with:
