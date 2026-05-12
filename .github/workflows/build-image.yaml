@@ -2,7 +2,7 @@ name: Container
 run-name: Build Container by ${{ github.actor }}
 
 env:
-  BUILDKIT_HOST: buildkitd.buildkit.svc.cluster.local
+  BUILDKIT_HOST: buildkitd.buildkit
   BUILDKIT_PORT: 1234
 
 on:
