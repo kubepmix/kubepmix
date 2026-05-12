@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240">
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- ICON (same as standalone, centered at 120,120) -->
+  <!-- ══════════════════════════════════════════ -->
+
+  <!-- Background dark circle -->
+  <circle cx="120" cy="120" r="98" fill="#0E1B2E" stroke="#081018" stroke-width="2"/>
+
+  <!-- Outer decorative ring + tick marks -->
+  <circle cx="120" cy="120" r="105" fill="none" stroke="#2563EB" stroke-width="1" opacity="0.4"/>
+  <g stroke="#2563EB" stroke-width="1.5" opacity="0.4">
+    <line x1="120" y1="12" x2="120" y2="18" transform="rotate(0,   120,120)"/>
+    <line x1="120" y1="12" x2="120" y2="18" transform="rotate(30,  120,120)"/>
+    <line x1="120" y1="12" x2="120" y2="18" transform="rotate(60,  120,120)"/>
+    <line x1="120" y1="12" x2="120" y2="18" transform="rotate(90,  120,120)"/>
+    <line x1="120" y1="12" x2="120" y2="18" transform="rotate(120, 120,120)"/>
+    <line x1="120" y1="12" x2="120" y2="18" transform="rotate(150, 120,120)"/>
+    <line x1="120" y1="12" x2="120" y2="18" transform="rotate(180, 120,120)"/>
+    <line x1="120" y1="12" x2="120" y2="18" transform="rotate(210, 120,120)"/>
+    <line x1="120" y1="12" x2="120" y2="18" transform="rotate(240, 120,120)"/>
+    <line x1="120" y1="12" x2="120" y2="18" transform="rotate(270, 120,120)"/>
+    <line x1="120" y1="12" x2="120" y2="18" transform="rotate(300, 120,120)"/>
+    <line x1="120" y1="12" x2="120" y2="18" transform="rotate(330, 120,120)"/>
+  </g>
+
+  <!-- Wheel outer ring -->
+  <circle cx="120" cy="120" r="80" fill="none" stroke="#2563EB" stroke-width="14"/>
+  <circle cx="120" cy="120" r="87" fill="none" stroke="#081018" stroke-width="2.5"/>
+  <circle cx="120" cy="120" r="73" fill="none" stroke="#081018" stroke-width="2"/>
+
+  <!-- 7 Spokes -->
+  <g stroke="#2563EB" stroke-width="10" stroke-linecap="butt">
+    <line x1="120.0" y1="92.0" x2="120.0" y2="40.0"/>
+    <line x1="141.9" y1="102.5" x2="182.5" y2="70.1"/>
+    <line x1="147.3" y1="126.2" x2="198.0" y2="137.8"/>
+    <line x1="132.1" y1="145.2" x2="154.7" y2="192.1"/>
+    <line x1="107.9" y1="145.2" x2="85.3"  y2="192.1"/>
+    <line x1="92.7"  y1="126.2" x2="42.0"  y2="137.8"/>
+    <line x1="98.1"  y1="102.5" x2="57.5"  y2="70.1"/>
+  </g>
+  <g stroke="#081018" stroke-width="2.5" stroke-linecap="butt">
+    <line x1="120.0" y1="92.0" x2="120.0" y2="40.0"/>
+    <line x1="141.9" y1="102.5" x2="182.5" y2="70.1"/>
+    <line x1="147.3" y1="126.2" x2="198.0" y2="137.8"/>
+    <line x1="132.1" y1="145.2" x2="154.7" y2="192.1"/>
+    <line x1="107.9" y1="145.2" x2="85.3"  y2="192.1"/>
+    <line x1="92.7"  y1="126.2" x2="42.0"  y2="137.8"/>
+    <line x1="98.1"  y1="102.5" x2="57.5"  y2="70.1"/>
+  </g>
+
+  <!-- 7 Knobs -->
+  <g fill="#2563EB" stroke="#081018" stroke-width="2.5">
+    <circle cx="120.0" cy="40.0"  r="9"/>
+    <circle cx="182.5" cy="70.1"  r="9"/>
+    <circle cx="198.0" cy="137.8" r="9"/>
+    <circle cx="154.7" cy="192.1" r="9"/>
+    <circle cx="85.3"  cy="192.1" r="9"/>
+    <circle cx="42.0"  cy="137.8" r="9"/>
+    <circle cx="57.5"  cy="70.1"  r="9"/>
+  </g>
+
+  <!-- Center hub -->
+  <circle cx="120" cy="120" r="28" fill="#2563EB" stroke="#081018" stroke-width="2.5"/>
+  <circle cx="120" cy="120" r="19" fill="#0E1B2E" stroke="#2563EB" stroke-width="1.2"/>
+
+  <!-- MPI mesh: 3 nodes fully connected -->
+  <g stroke="#06B6D4" stroke-width="1.8" stroke-linecap="round">
+    <line x1="120.0" y1="108.0" x2="130.4" y2="126.0"/>
+    <line x1="130.4" y1="126.0" x2="109.6" y2="126.0"/>
+    <line x1="109.6" y1="126.0" x2="120.0" y2="108.0"/>
+  </g>
+  <g fill="#06B6D4">
+    <circle cx="120.0" cy="108.0" r="4.5"/>
+    <circle cx="130.4" cy="126.0" r="4.5"/>
+    <circle cx="109.6" cy="126.0" r="4.5"/>
+  </g>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- WORDMARK — right side, vertically centered -->
+  <!-- ══════════════════════════════════════════ -->
+
+  <!-- Thin vertical divider -->
+  <line x1="252" y1="60" x2="252" y2="180" stroke="#2563EB" stroke-width="1" opacity="0.45"/>
+
+  <!-- "Kube" in blue, "PMIx" in cyan, stacked -->
+  <!-- Using a bold geometric sans via system stack; size tuned so both lines feel balanced -->
+  <text
+    x="272" y="108"
+    font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
+    font-size="52"
+    font-weight="900"
+    fill="#2563EB"
+    letter-spacing="-1">Kube</text>
+
+  <text
+    x="272" y="168"
+    font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
+    font-size="52"
+    font-weight="900"
+    fill="#06B6D4"
+    letter-spacing="-1">PMIx</text>
+
+</svg>
