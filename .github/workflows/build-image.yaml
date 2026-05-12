@@ -4,6 +4,10 @@ run-name: Build Container by ${{ github.actor }}
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   build-image:
     runs-on: kubepmix-selfhosted
@@ -36,7 +40,7 @@ jobs:
           images: |
             ghcr.io/${{ github.repository }}
           tags: |
-            type=semver,pattern={{version}},value={{ steps.semver.outputs.version }}
+            type=raw,value={{ steps.semver.outputs.version }}
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Set up Docker Buildx
