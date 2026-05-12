@@ -19,7 +19,7 @@ RUN git clone ${PMIX_REPO} /openpmix
 WORKDIR /openpmix
 RUN git checkout ${PMIX_REV}
 RUN git submodule update --init
-RUN ./autogen.pl 1>/dev/null
+RUN ./autogen.pl --quiet
 
 RUN pip3 install --break-system-packages cython setuptools aiohttp 1>/dev/null
 RUN ./configure --prefix=/opt/pmix --enable-python-bindings 1>/dev/null
@@ -29,15 +29,15 @@ RUN cp /openpmix/bindings/python/build/lib.linux-x86_64-cpython-312/*.so /usr/li
 # Stage 2: Runtime. With merged stages: 687 MB. With python slim with deps: 245MB.
 FROM python:3.12-slim as runtime
 
+RUN apt-get update 1>/dev/null && apt-get install -y --no-install-recommends \
+    libevent-dev libhwloc-dev zlib1g-dev 1>/dev/null \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY . /app
 WORKDIR /app
 
 COPY --from=pmix-build /usr/lib/python3/dist-packages/pmix* /app
 COPY --from=pmix-build /opt/pmix /opt/pmix
-
-RUN apt-get update 1>/dev/null && apt-get install -y --no-install-recommends \
-    libevent-dev libhwloc-dev zlib1g-dev 1>/dev/null \
-    && rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install -r /app/requirements.txt --break-system-packages 1>/dev/null
 
