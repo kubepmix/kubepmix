@@ -69,9 +69,9 @@ class KubePMIxServer(pmix.PMIxServer):
         codes = [] # Register all codes
         rc, ref = self.register_event_handler(codes, [], event_handler)
         if rc != pmix.PMIX_SUCCESS:
-            print(f"Failed to register for connection events: {self.error_string(rc)}")
+            print(f"[ Kube PMIx Server ] Failed to register for connection events: {self.error_string(rc)}")
         else:
-            print(f"Successfully registered for connection events with ref {ref}")
+            print(f"[ Kube PMIx Server ] Successfully registered for connection events with ref {ref}")
 
     def clientconnected(self, proc: Any, cbfunc: Any, cbdata: dict):
         normalized_proc = self._normalize_proc(proc)  
