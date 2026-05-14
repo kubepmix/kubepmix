@@ -1,6 +1,4 @@
 import os
-KUBE_PMIX_SERVER_PORT  = int(os.getenv('KUBE_PMIX_SERVER_PORT', '3333'))
-KUBE_PMIX_SERVER_IFACE = os.getenv('KUBE_PMIX_SERVER_IFACE', 'eth0')
 
 # Set both to enable static namespace registration on startup.
 KUBE_PMIX_NAMESPACE_NAME = os.getenv('KUBE_PMIX_NAMESPACE_NAME')

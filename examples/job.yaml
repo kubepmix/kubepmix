@@ -1,0 +1,14 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pmix-example
+  labels:
+    kubepmix.dev/enabled: "true"
+spec:
+  parallelism: 4
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: worker
+          image: ghcr.io/jjlakis/simplempi:0.1.0

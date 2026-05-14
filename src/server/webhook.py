@@ -12,23 +12,21 @@ from config import KUBE_PMIX_WEBHOOK_PORT, KUBE_PMIX_TLS_CERT, KUBE_PMIX_TLS_KEY
 log = logging.getLogger(__name__)
 
 
-def start_webhook(pmix_server, rank_tracker, loop):
+async def start_webhook(pmix_server, rank_tracker):
     app = web.Application()
     app['pmix'] = pmix_server
     app['ranks'] = rank_tracker
     app.router.add_post('/mutate/jobs', mutate_job)
     app.router.add_post('/mutate/pods', mutate_pod)
 
-    async def _start():
-        runner = web.AppRunner(app)
-        await runner.setup()
-        ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-        ctx.load_cert_chain(KUBE_PMIX_TLS_CERT, KUBE_PMIX_TLS_KEY)
-        site = web.TCPSite(runner, '0.0.0.0', KUBE_PMIX_WEBHOOK_PORT, ssl_context=ctx)
-        await site.start()
-        log.info("Webhook listening on :%d", KUBE_PMIX_WEBHOOK_PORT)
-
-    asyncio.run_coroutine_threadsafe(_start(), loop).result()
+    runner = web.AppRunner(app)
+    await runner.setup()
+    ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    ctx.load_cert_chain(KUBE_PMIX_TLS_CERT, KUBE_PMIX_TLS_KEY)
+    site = web.TCPSite(runner, '0.0.0.0', KUBE_PMIX_WEBHOOK_PORT, ssl_context=ctx)
+    await site.start()
+    log.info("Webhook listening on :%d", KUBE_PMIX_WEBHOOK_PORT)
+    return runner
 
 
 # --- Job webhook ---
@@ -40,7 +38,7 @@ async def mutate_job(request):
     job = review['object']
 
     labels = job.get('metadata', {}).get('labels', {})
-    if labels.get('pmix.lakis.tech/enabled') != 'true':
+    if labels.get('kubepmix.dev/enabled') != 'true':
         return _allow(uid)
 
     parallelism = job['spec'].get('parallelism', 1)
@@ -57,7 +55,7 @@ async def mutate_job(request):
         )
     except Exception as e:
         log.error("PMIx registration failed for %s: %s", nspace, e)
-        patch = _annotation_patch(job, 'pmix.lakis.tech/registration-warning', str(e))
+        patch = _annotation_patch(job, 'kubepmix.dev/registration-warning', str(e))
         return _allow(uid, patch)
 
     request.app['ranks'].register(nspace, parallelism)
@@ -73,14 +71,14 @@ async def mutate_pod(request):
     pod = review['object']
 
     labels = pod.get('metadata', {}).get('labels', {})
-    nspace = labels.get('pmix.lakis.tech/namespace')
+    nspace = labels.get('kubepmix.dev/namespace')
     if not nspace:
         return _allow(uid)
 
     log.info("Pod intercepted: %s/%s nspace=%s",
              pod['metadata'].get('namespace', ''), pod['metadata'].get('name', '<pending>'), nspace)
 
-    rank_label = labels.get('pmix.lakis.tech/rank')
+    rank_label = labels.get('kubepmix.dev/rank')
     try:
         if rank_label is not None:
             rank = request.app['ranks'].claim(nspace, int(rank_label))
@@ -115,11 +113,11 @@ def _label_patch(job, nspace):
     tmpl_meta = job['spec']['template'].get('metadata')
     if tmpl_meta is None:
         return [{"op": "add", "path": "/spec/template/metadata",
-                 "value": {"labels": {"pmix.lakis.tech/namespace": nspace}}}]
+                 "value": {"labels": {"kubepmix.dev/namespace": nspace}}}]
     if tmpl_meta.get('labels') is None:
         return [{"op": "add", "path": "/spec/template/metadata/labels",
-                 "value": {"pmix.lakis.tech/namespace": nspace}}]
-    return [{"op": "add", "path": "/spec/template/metadata/labels/pmix.lakis.tech~1namespace",
+                 "value": {"kubepmix.dev/namespace": nspace}}]
+    return [{"op": "add", "path": "/spec/template/metadata/labels/kubepmix.dev~1namespace",
              "value": nspace}]
 
 
