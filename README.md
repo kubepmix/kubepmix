@@ -33,7 +33,7 @@ spec:
           image: ghcr.io/kubepmix/simplempi:latest
 ```
 
-See: [Running Jobs](docs/jobs.md), [Running JobSets](docs/jobsets.md), [Running PodSets](docs/podsets.md) or [Running with docker-compose](docs/compose.md)
+See: [Running Jobs](docs/jobs.md), [Running JobSets](docs/jobsets.md) or [Running with docker-compose](docs/compose.md)
 
 # Learn more
 
