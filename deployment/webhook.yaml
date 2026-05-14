@@ -1,0 +1,58 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: kube-pmix
+  annotations:
+    # cert-manager injects the CA bundle from this Certificate automatically.
+    cert-manager.io/inject-ca-from: kube-pmix/kube-pmix-tls
+webhooks:
+  - name: jobs.kube-pmix.io
+    admissionReviewVersions: ["v1"]
+    sideEffects: None
+    failurePolicy: Ignore
+    clientConfig:
+      service:
+        name: kube-pmix
+        namespace: kube-pmix
+        path: /mutate/jobs
+        port: 443
+    objectSelector:
+      matchLabels:
+        kubepmix.dev/enabled: "true"
+    rules:
+      - apiGroups: ["batch"]
+        apiVersions: ["v1"]
+        resources: ["jobs"]
+        operations: ["CREATE"]
+        scope: "*"
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: NotIn
+          values: ["kube-pmix"]
+
+  - name: pods.kube-pmix.io
+    admissionReviewVersions: ["v1"]
+    sideEffects: None
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        name: kube-pmix
+        namespace: kube-pmix
+        path: /mutate/pods
+        port: 443
+    objectSelector:
+      matchExpressions:
+        - key: kubepmix.dev/namespace
+          operator: Exists
+    rules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["pods"]
+        operations: ["CREATE"]
+        scope: "*"
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: NotIn
+          values: ["kube-pmix"]

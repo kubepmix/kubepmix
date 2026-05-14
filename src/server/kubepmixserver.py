@@ -7,8 +7,8 @@ from typing import Any
 from server.dmodex_parser import get_btl_endpoints
 
 class KubePMIxServer(pmix.PMIxServer):
-    def __init__(self, port, iface, event_loop):
-        print(f"[ Kube PMIx Server ] Running PMIx server init with port={port}, iface={iface}")
+    def __init__(self, event_loop):
+        print(f"[ Kube PMIx Server ] Running PMIx server init")
 
         super().__init__()
         self._event_loop = event_loop
@@ -18,8 +18,6 @@ class KubePMIxServer(pmix.PMIxServer):
 
         rc = self.init([
             {'key': 'pmix.srv.nspace', 'value': 'kubepmix', 'val_type': pmix.PMIX_STRING},
-            {'key': 'pmix.tcp.ipv4', 'value': port, 'val_type': pmix.PMIX_INT},
-            {'key': 'pmix.tcp.ifinclude', 'value': iface,  'val_type': pmix.PMIX_STRING},
             {'key': 'pmix.tcp.disipv6', 'value': True,  'val_type': pmix.PMIX_BOOL},
             {'key': 'pmix.iof.local', 'value': False, 'val_type': pmix.PMIX_BOOL},
             {'key': 'pmix.tcp.repuri',  'value': '-',   'val_type': pmix.PMIX_STRING},  # print URI to stdout
