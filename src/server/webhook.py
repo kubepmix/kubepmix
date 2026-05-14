@@ -41,26 +41,55 @@ async def mutate_job(request):
     if labels.get('kubepmix.dev/enabled') != 'true':
         return _allow(uid)
 
-    parallelism = job['spec'].get('parallelism', 1)
-    nspace = f"pmix-{job['metadata']['name']}-{uuid.uuid4().hex[:8]}"
-    log.info("Job intercepted: %s/%s parallelism=%d → nspace=%s",
-             job['metadata'].get('namespace', ''), job['metadata']['name'], parallelism, nspace)
+    log.info("Job intercepted")
 
-    try:
-        loop = asyncio.get_event_loop()
-        await loop.run_in_executor(
-            None,
-            request.app['pmix'].register_nspace_and_clients,
-            nspace, parallelism,
-        )
-    except Exception as e:
-        log.error("PMIx registration failed for %s: %s", nspace, e)
-        patch = _annotation_patch(job, 'kubepmix.dev/registration-warning', str(e))
-        return _allow(uid, patch)
 
-    request.app['ranks'].register(nspace, parallelism)
+    # Check if we are owned by job-set. If we have label: jobset.sigs.k8s.io/jobset-uid
+    # If so, set our ns_base_name to "{jobset.sigs.k8s.io/jobset-name}-{jobset.sigs.k8s.io/jobset-uid}-{jobset.sigs.k8s.io/restart-attempt}" instead of "pmix-{job-name}"
+
+    if 'jobset.sigs.k8s.io/jobset-uid' in labels:
+        jobset_uid = labels['jobset.sigs.k8s.io/jobset-uid']
+        jobset_name = labels.get('jobset.sigs.k8s.io/jobset-name', 'unknown-jobset')
+        restart_attempt = labels.get('jobset.sigs.k8s.io/restart-attempt', '0')
+        parallelism = labels.get('kubepmix/restart-attempt', '0')
+
+        nspace = f"pmix-{jobset_name}-{jobset_uid}-{restart_attempt}"
+
+        log.info(f"Job is part of JobSet: using nspace={nspace}")
+    else:
+        nspace = f"pmix-{job['metadata']['name']}-{uuid.uuid4().hex[:8]}"
+
+        log.info(f"Job is not part of JobSet: using nspace={nspace}")
+
+
+    # Check if we have set kubepmix.dev/create to true. If so - register the namespace. Always create for standalone job.
+    if labels.get('kubepmix.dev/create') == 'true' or 'jobset.sigs.k8s.io/jobset-uid' not in labels:
+        
+        # For JobSets - create with size specified in kubepmix.dev/size
+        if 'jobset.sigs.k8s.io/jobset-uid' in labels:
+            parallelism=int(labels.get('kubepmix.dev/size', '0'))
+            log.info(f"Create mode: Registering namespace {nspace} with size: {parallelism} (from kubepmix.dev/size)")
+        # For standalone Jobs - create with size specified in job spec parallelism
+        else:
+            parallelism=job['spec'].get('parallelism', 0)
+            log.info(f"Create mode: Registering namespace {nspace} with size: {parallelism} (from job spec)")
+            
+        try:
+            loop = asyncio.get_event_loop()
+            await loop.run_in_executor(
+                None,
+                request.app['pmix'].register_nspace_and_clients,
+                nspace, parallelism,
+            )
+        except Exception as e:
+            log.error("PMIx registration failed for %s: %s", nspace, e)
+            patch = _annotation_patch(job, 'kubepmix.dev/registration-warning', str(e))
+            return _allow(uid, patch)
+        
+        request.app['ranks'].register(nspace, parallelism)
+
+    log.info(f"Allowing job with nspace={nspace} parallelism={parallelism}, will just mutate the pod labels")
     return _allow(uid, _label_patch(job, nspace))
-
 
 # --- Pod webhook ---
 
