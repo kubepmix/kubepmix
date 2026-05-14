@@ -5,6 +5,15 @@ metadata:
   annotations:
     kueue.x-k8s.io/queue-name: jobset
 spec:
+  failurePolicy:
+    maxRestarts: 10
+    restartStrategy: Recreate
+    rules:
+      - name: restartall
+        action: RestartJobSet
+        targetReplicatedJobs: []
+        onJobFailureReasons: []
+        onJobFailureMessagePatterns: []
   replicatedJobs:
     - name: rank0
       replicas: 1
@@ -15,21 +24,30 @@ spec:
             kubepmix.dev/create: "true"
             kubepmix.dev/size: "2"
         spec:
+          backoffLimit: 0
           parallelism: 1
           completions: 1
           template:
             spec:
-              schedulerName: coscheduler
+              restartPolicy: Never
               containers:
                 - name: worker
-                  image: ghcr.io/jjlakis/simplempi:0.1.0
+                  image: ghcr.io/jjlakis/simplempi:0.5.0
                   env:
                     - name: SLEEP_TIME
-                      value: "1"
+                      value: "5"
                     - name: SLEEP_COUNT
                       value: "5"
                     - name: OMPI_MCA_mpi_ft_enable
                       value: "1"
+
+                    # Run All Gather 10 times, 3 seconds apart, segfault on iteration 5.
+                    - name: GATHER_COUNT
+                      value: "10"
+                    - name: GATHER_TIME
+                      value: "3"
+                    - name: SEGFAULT_ON
+                      value: "5"
     - name: rank1
       replicas: 1
       template:
@@ -37,18 +55,25 @@ spec:
           labels:
             kubepmix.dev/enabled: "true"
         spec:
+          backoffLimit: 0
           parallelism: 1
           completions: 1
           template:
             spec:
-              schedulerName: coscheduler
+              restartPolicy: Never
               containers:
                 - name: worker
-                  image: ghcr.io/jjlakis/simplempi:0.1.0
+                  image: ghcr.io/jjlakis/simplempi:0.5.0
                   env:
                     - name: SLEEP_TIME
-                      value: "1"
+                      value: "5"
                     - name: SLEEP_COUNT
                       value: "1"
                     - name: OMPI_MCA_mpi_ft_enable
                       value: "1"
+
+                    # Run All Gather 10 times, 3 seconds apart
+                    - name: GATHER_COUNT
+                      value: "10"
+                    - name: GATHER_TIME
+                      value: "3"
