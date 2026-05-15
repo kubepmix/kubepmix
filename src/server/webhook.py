@@ -109,17 +109,31 @@ async def mutate_pod(request):
     if not nspace:
         return _allow(uid)
 
+    init_container_depth = labels.get('kubepmix.dev/initContainerDepth')
+    init_depth = None
+    if init_container_depth is not None:
+        try:
+            init_depth = int(init_container_depth)
+            if init_depth < 0:
+                raise ValueError("initContainerDepth must be >= 0")
+        except ValueError as e:
+            log.error("Invalid kubepmix.dev/initContainerDepth=%r: %s", init_container_depth, e)
+            return _deny(uid, f"Invalid kubepmix.dev/initContainerDepth: {init_container_depth}")
+
     log.info("Pod intercepted: %s/%s nspace=%s",
              pod['metadata'].get('namespace', ''), pod['metadata'].get('name', '<pending>'), nspace)
 
     rank_label = labels.get('kubepmix.dev/rank')
+    patch = []
+
+    # Mutate normal containers with the main namespace.
     try:
         if rank_label is not None:
             rank = request.app['ranks'].claim(nspace, int(rank_label))
         else:
             rank = request.app['ranks'].assign(nspace)
     except (KeyError, ValueError, RuntimeError) as e:
-        log.error("Rank assignment failed: %s", e)
+        log.error("Rank assignment failed for %s: %s", nspace, e)
         return _deny(uid, str(e))
 
     log.info("Assigned rank %d to pod %s nspace=%s (explicit=%s)",
@@ -138,7 +152,50 @@ async def mutate_pod(request):
 
     env['PMIX_SECURITY_MODE'] = 'none'
     env['PMIX_GDS_MODULE'] = 'hash'
-    return _allow(uid, _env_patch(pod, env))
+    patch.extend(_env_patch(pod, env, container_key='containers'))
+
+    # If requested, mutate initContainers[0..depth] using namespace-init-{index}.
+    if init_depth is not None:
+        init_containers = pod.get('spec', {}).get('initContainers', [])
+        for init_idx in range(init_depth + 1):
+            if init_idx >= len(init_containers):
+                log.warning(
+                    "initContainerDepth requested index %d but pod has %d initContainers; skipping",
+                    init_idx, len(init_containers)
+                )
+                continue
+
+            init_nspace = f"{nspace}-init-{init_idx}"
+            try:
+                if rank_label is not None:
+                    init_rank = request.app['ranks'].claim(init_nspace, int(rank_label))
+                else:
+                    init_rank = request.app['ranks'].assign(init_nspace)
+            except (KeyError, ValueError, RuntimeError) as e:
+                log.error("Rank assignment failed for %s: %s", init_nspace, e)
+                return _deny(uid, str(e))
+
+            init_env = {}
+            try:
+                loop = asyncio.get_event_loop()
+                await loop.run_in_executor(
+                    None,
+                    lambda n=init_nspace, r=init_rank, e=init_env: request.app['pmix'].setup_fork({'nspace': n, 'rank': r}, e),
+                )
+            except Exception as e:
+                log.error("setup_fork failed for %s:%d: %s", init_nspace, init_rank, e)
+                return _deny(uid, f"PMIx setup_fork failed: {e}")
+
+            init_env['PMIX_SECURITY_MODE'] = 'none'
+            init_env['PMIX_GDS_MODULE'] = 'hash'
+            patch.extend(_env_patch(
+                pod,
+                init_env,
+                container_key='initContainers',
+                container_index=init_idx,
+            ))
+
+    return _allow(uid, patch)
 
 
 # --- Patch helpers ---
@@ -164,15 +221,24 @@ def _label_patch(job, nspace, init_container_depth=None):
                       "value": init_container_depth})
     return patch
 
-def _env_patch(pod, env):
+def _env_patch(pod, env, container_key='containers', container_index=None):
     patch = []
     env_list = [{"name": k, "value": v} for k, v in env.items()]
-    for i, container in enumerate(pod.get('spec', {}).get('containers', [])):
+    containers = pod.get('spec', {}).get(container_key, [])
+    if container_index is not None:
+        if container_index < 0 or container_index >= len(containers):
+            return patch
+        index_iter = [container_index]
+    else:
+        index_iter = range(len(containers))
+
+    for i in index_iter:
+        container = containers[i]
         if container.get('env') is None:
-            patch.append({"op": "add", "path": f"/spec/containers/{i}/env", "value": env_list})
+            patch.append({"op": "add", "path": f"/spec/{container_key}/{i}/env", "value": env_list})
         else:
             for ev in env_list:
-                patch.append({"op": "add", "path": f"/spec/containers/{i}/env/-", "value": ev})
+                patch.append({"op": "add", "path": f"/spec/{container_key}/{i}/env/-", "value": ev})
     return patch
 
 
