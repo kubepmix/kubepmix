@@ -51,45 +51,50 @@ async def mutate_job(request):
         jobset_uid = labels['jobset.sigs.k8s.io/jobset-uid']
         jobset_name = labels.get('jobset.sigs.k8s.io/jobset-name', 'unknown-jobset')
         restart_attempt = labels.get('jobset.sigs.k8s.io/restart-attempt', '0')
-        parallelism = labels.get('kubepmix/restart-attempt', '0')
-
         nspace = f"pmix-{jobset_name}-{jobset_uid}-{restart_attempt}"
-
         log.info(f"Job is part of JobSet: using nspace={nspace}")
     else:
         nspace = f"pmix-{job['metadata']['name']}-{uuid.uuid4().hex[:8]}"
-
         log.info(f"Job is not part of JobSet: using nspace={nspace}")
 
+    nspaces_to_create = [nspace]
+
+    init_container_depth = labels.get('kubepmix.dev/initContainerDepth', None)
+    
+    if init_container_depth is not None:
+        nspaces_to_create.extend([f"{nspace}-init-{i}" for i in range(int(init_container_depth) + 1)])
+        log.info(f"Job has init containers, considering namespaces list: {nspaces_to_create}")
+        
 
     # Check if we have set kubepmix.dev/create to true. If so - register the namespace. Always create for standalone job.
     if labels.get('kubepmix.dev/create') == 'true' or 'jobset.sigs.k8s.io/jobset-uid' not in labels:
-        
+
         # For JobSets - create with size specified in kubepmix.dev/size
         if 'jobset.sigs.k8s.io/jobset-uid' in labels:
             parallelism=int(labels.get('kubepmix.dev/size', '0'))
-            log.info(f"Create mode: Registering namespace {nspace} with size: {parallelism} (from kubepmix.dev/size)")
+            log.info(f"Create mode: Registering namespaces {nspaces_to_create} with size: {parallelism} (from kubepmix.dev/size)")
         # For standalone Jobs - create with size specified in job spec parallelism
         else:
             parallelism=job['spec'].get('parallelism', 0)
-            log.info(f"Create mode: Registering namespace {nspace} with size: {parallelism} (from job spec)")
-            
-        try:
-            loop = asyncio.get_event_loop()
-            await loop.run_in_executor(
-                None,
-                request.app['pmix'].register_nspace_and_clients,
-                nspace, parallelism,
-            )
-        except Exception as e:
-            log.error("PMIx registration failed for %s: %s", nspace, e)
-            patch = _annotation_patch(job, 'kubepmix.dev/registration-warning', str(e))
-            return _allow(uid, patch)
-        
-        request.app['ranks'].register(nspace, parallelism)
+            log.info(f"Create mode: Registering namespaces {nspaces_to_create} with size: {parallelism} (from job spec)")
 
-    log.info(f"Allowing job with nspace={nspace} parallelism={parallelism}, will just mutate the pod labels")
-    return _allow(uid, _label_patch(job, nspace))
+        for nspace in nspaces_to_create:
+            try:
+                loop = asyncio.get_event_loop()
+                await loop.run_in_executor(
+                    None,
+                    request.app['pmix'].register_nspace_and_clients,
+                    nspace, parallelism,
+                )
+            except Exception as e:
+                log.error("PMIx registration failed for %s: %s", nspace, e)
+                patch = _annotation_patch(job, 'kubepmix.dev/registration-warning', str(e))
+                return _allow(uid, patch)
+        
+            request.app['ranks'].register(nspace, parallelism)
+
+    log.info(f"Allowing job with nspaces={nspaces_to_create}, will just mutate the pod labels")
+    return _allow(uid, _label_patch(job, nspaces_to_create[0], init_container_depth))
 
 # --- Pod webhook ---
 
@@ -138,17 +143,26 @@ async def mutate_pod(request):
 
 # --- Patch helpers ---
 
-def _label_patch(job, nspace):
+def _label_patch(job, nspace, init_container_depth=None):
     tmpl_meta = job['spec']['template'].get('metadata')
     if tmpl_meta is None:
+        labels = {"kubepmix.dev/namespace": nspace}
+        if init_container_depth is not None:
+            labels["kubepmix.dev/initContainerDepth"] = init_container_depth
         return [{"op": "add", "path": "/spec/template/metadata",
-                 "value": {"labels": {"kubepmix.dev/namespace": nspace}}}]
+                 "value": {"labels": labels}}]
     if tmpl_meta.get('labels') is None:
+        labels = {"kubepmix.dev/namespace": nspace}
+        if init_container_depth is not None:
+            labels["kubepmix.dev/initContainerDepth"] = init_container_depth
         return [{"op": "add", "path": "/spec/template/metadata/labels",
-                 "value": {"kubepmix.dev/namespace": nspace}}]
-    return [{"op": "add", "path": "/spec/template/metadata/labels/kubepmix.dev~1namespace",
+                 "value": labels}]
+    patch = [{"op": "add", "path": "/spec/template/metadata/labels/kubepmix.dev~1namespace",
              "value": nspace}]
-
+    if init_container_depth is not None:
+        patch.append({"op": "add", "path": "/spec/template/metadata/labels/kubepmix.dev~1initContainerDepth",
+                      "value": init_container_depth})
+    return patch
 
 def _env_patch(pod, env):
     patch = []
