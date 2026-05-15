@@ -21,6 +21,7 @@ spec:
         metadata:
           labels:
             kubepmix.dev/enabled: "true"
+            kubepmix.dev/initContainerDepth: "0"
             kubepmix.dev/create: "true"
             kubepmix.dev/size: "2"
         spec:
@@ -31,6 +32,16 @@ spec:
             spec:
               restartPolicy: Never
               terminationGracePeriodSeconds: 0
+              initContainers:
+                - name: init
+                  image: ghcr.io/jjlakis/simplempi:0.5.0
+                  env:
+                    - name: SLEEP_TIME
+                      value: "5"
+                    - name: SLEEP_COUNT
+                      value: "1"
+                    - name: OMPI_MCA_mpi_ft_enable
+                      value: "1"
               containers:
                 - name: worker
                   image: ghcr.io/jjlakis/simplempi:0.5.0
@@ -55,6 +66,7 @@ spec:
         metadata:
           labels:
             kubepmix.dev/enabled: "true"
+            kubepmix.dev/initContainerDepth: "0"
         spec:
           backoffLimit: 0
           parallelism: 1
@@ -63,6 +75,16 @@ spec:
             spec:
               restartPolicy: Never
               terminationGracePeriodSeconds: 0
+              initContainers:
+                - name: init
+                  image: ghcr.io/jjlakis/simplempi:0.5.0
+                  env:
+                    - name: SLEEP_TIME
+                      value: "5"
+                    - name: SLEEP_COUNT
+                      value: "1"
+                    - name: OMPI_MCA_mpi_ft_enable
+                      value: "1"
               containers:
                 - name: worker
                   image: ghcr.io/jjlakis/simplempi:0.5.0
