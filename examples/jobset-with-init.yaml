@@ -6,11 +6,11 @@ metadata:
     kueue.x-k8s.io/queue-name: jobset
 spec:
   failurePolicy:
-    maxRestarts: 10
+    maxRestarts: 2
     restartStrategy: Recreate
     rules:
       - name: restartall
-        action: RestartJobSet
+        action: RestartJobSetAndIgnoreMaxRestarts
         targetReplicatedJobs: []
         onJobFailureReasons: []
         onJobFailureMessagePatterns: []
