@@ -1,0 +1,188 @@
+apiVersion: jobset.x-k8s.io/v1alpha2
+kind: JobSet
+metadata:
+  name: jobset
+  annotations:
+    kueue.x-k8s.io/queue-name: jobset
+spec:
+  failurePolicy:
+    maxRestarts: 2
+    restartStrategy: Recreate
+    rules:
+      - name: restartall
+        action: RestartJobSetAndIgnoreMaxRestarts
+        targetReplicatedJobs: []
+        onJobFailureReasons: []
+        onJobFailureMessagePatterns: []
+  replicatedJobs:
+    - name: rank01
+      replicas: 1
+      template:
+        metadata:
+          labels:
+            kubepmix.dev/enabled: "true"
+            kubepmix.dev/initContainerDepth: "0"
+
+            # Create worlds for initContainers (3) and main containers (6)
+            kubepmix.dev/create: "true"
+            kubepmix.dev/initContainerWorldSize: "3"
+            kubepmix.dev/size: "6"
+        spec:
+          backoffLimit: 0
+          parallelism: 1
+          completions: 1
+          template:
+            metadata:
+              labels:
+                # Assign ranks for main containers, initContainers are homogenous
+                kubepmix.dev/containerRanks: "0-1"
+            spec:
+              restartPolicy: Never
+              terminationGracePeriodSeconds: 0
+              initContainers:
+                - name: init
+                  image: ghcr.io/jjlakis/simplempi:0.5.0
+                  env:
+                    - name: SLEEP_TIME
+                      value: "5"
+                    - name: SLEEP_COUNT
+                      value: "1"
+                    - name: OMPI_MCA_mpi_ft_enable
+                      value: "1"
+              containers:
+                - name: worker0
+                  image: ghcr.io/jjlakis/simplempi:0.5.0
+                  env:
+                    - name: SLEEP_TIME
+                      value: "5"
+                    - name: SLEEP_COUNT
+                      value: "5"
+                    - name: OMPI_MCA_mpi_ft_enable
+                      value: "1"
+                    - name: GATHER_COUNT
+                      value: "10"
+                    - name: GATHER_TIME
+                      value: "3"
+                - name: worker1
+                  image: ghcr.io/jjlakis/simplempi:0.5.0
+                  env:
+                    - name: SLEEP_TIME
+                      value: "5"
+                    - name: SLEEP_COUNT
+                      value: "5"
+                    - name: OMPI_MCA_mpi_ft_enable
+                      value: "1"
+                    - name: GATHER_COUNT
+                      value: "10"
+                    - name: GATHER_TIME
+                      value: "3"
+    - name: rank23
+      replicas: 1
+      template:
+        metadata:
+          labels:
+            kubepmix.dev/enabled: "true"
+            kubepmix.dev/initContainerDepth: "0"
+        spec:
+          backoffLimit: 0
+          parallelism: 1
+          completions: 1
+          template:
+            metadata:
+              labels:
+                kubepmix.dev/containerRanks: "2-3"
+            spec:
+              restartPolicy: Never
+              terminationGracePeriodSeconds: 0
+              initContainers:
+                - name: init
+                  image: ghcr.io/jjlakis/simplempi:0.5.0
+                  env:
+                    - name: SLEEP_TIME
+                      value: "5"
+                    - name: SLEEP_COUNT
+                      value: "1"
+                    - name: OMPI_MCA_mpi_ft_enable
+                      value: "1"
+              containers:
+                - name: worker2
+                  image: ghcr.io/jjlakis/simplempi:0.5.0
+                  env:
+                    - name: SLEEP_TIME
+                      value: "5"
+                    - name: SLEEP_COUNT
+                      value: "1"
+                    - name: OMPI_MCA_mpi_ft_enable
+                      value: "1"
+                    - name: GATHER_COUNT
+                      value: "10"
+                    - name: GATHER_TIME
+                      value: "3"
+                - name: worker3
+                  image: ghcr.io/jjlakis/simplempi:0.5.0
+                  env:
+                    - name: SLEEP_TIME
+                      value: "5"
+                    - name: SLEEP_COUNT
+                      value: "1"
+                    - name: OMPI_MCA_mpi_ft_enable
+                      value: "1"
+                    - name: GATHER_COUNT
+                      value: "10"
+                    - name: GATHER_TIME
+                      value: "3"
+    - name: rank45
+      replicas: 1
+      template:
+        metadata:
+          labels:
+            kubepmix.dev/enabled: "true"
+            kubepmix.dev/initContainerDepth: "0"
+        spec:
+          backoffLimit: 0
+          parallelism: 1
+          completions: 1
+          template:
+            metadata:
+              labels:
+                kubepmix.dev/containerRanks: "4-5"
+            spec:
+              restartPolicy: Never
+              terminationGracePeriodSeconds: 0
+              initContainers:
+                - name: init
+                  image: ghcr.io/jjlakis/simplempi:0.5.0
+                  env:
+                    - name: SLEEP_TIME
+                      value: "5"
+                    - name: SLEEP_COUNT
+                      value: "1"
+                    - name: OMPI_MCA_mpi_ft_enable
+                      value: "1"
+              containers:
+                - name: worker4
+                  image: ghcr.io/jjlakis/simplempi:0.5.0
+                  env:
+                    - name: SLEEP_TIME
+                      value: "5"
+                    - name: SLEEP_COUNT
+                      value: "1"
+                    - name: OMPI_MCA_mpi_ft_enable
+                      value: "1"
+                    - name: GATHER_COUNT
+                      value: "10"
+                    - name: GATHER_TIME
+                      value: "3"
+                - name: worker5
+                  image: ghcr.io/jjlakis/simplempi:0.5.0
+                  env:
+                    - name: SLEEP_TIME
+                      value: "5"
+                    - name: SLEEP_COUNT
+                      value: "1"
+                    - name: OMPI_MCA_mpi_ft_enable
+                      value: "1"
+                    - name: GATHER_COUNT
+                      value: "10"
+                    - name: GATHER_TIME
+                      value: "3"
