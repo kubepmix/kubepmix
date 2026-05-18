@@ -43,11 +43,12 @@ async def mutate_job(request):
 
     log.info("Job intercepted")
 
-
     # Check if we are owned by job-set. If we have label: jobset.sigs.k8s.io/jobset-uid
     # If so, set our ns_base_name to "{jobset.sigs.k8s.io/jobset-name}-{jobset.sigs.k8s.io/jobset-uid}-{jobset.sigs.k8s.io/restart-attempt}" instead of "pmix-{job-name}"
 
-    if 'jobset.sigs.k8s.io/jobset-uid' in labels:
+    is_jobset = 'jobset.sigs.k8s.io/jobset-uid' in labels
+
+    if is_jobset:
         jobset_uid = labels['jobset.sigs.k8s.io/jobset-uid']
         jobset_name = labels.get('jobset.sigs.k8s.io/jobset-name', 'unknown-jobset')
         restart_attempt = labels.get('jobset.sigs.k8s.io/restart-attempt', '0')
@@ -57,44 +58,51 @@ async def mutate_job(request):
         nspace = f"pmix-{job['metadata']['name']}-{uuid.uuid4().hex[:8]}"
         log.info(f"Job is not part of JobSet: using nspace={nspace}")
 
-    nspaces_to_create = [nspace]
+    nspaces_to_create = [(nspace, None)]
 
     init_container_depth = labels.get('kubepmix.dev/initContainerDepth', None)
-    
-    if init_container_depth is not None:
-        nspaces_to_create.extend([f"{nspace}-init-{i}" for i in range(int(init_container_depth) + 1)])
-        log.info(f"Job has init containers, considering namespaces list: {nspaces_to_create}")
-        
+
+    if is_jobset and init_container_depth is not None:
+        init_container_world_size = int(labels.get('kubepmix.dev/initContainerWorldSize', labels.get('kubepmix.dev/size', '0')))
+        nspaces_to_create.extend([
+            (f"{nspace}-init-{i}", init_container_world_size)
+            for i in range(int(init_container_depth) + 1)
+        ])
+        log.info(
+            "Job has init containers, considering namespaces list: %s",
+            [ns for ns, _ in nspaces_to_create],
+        )
 
     # Check if we have set kubepmix.dev/create to true. If so - register the namespace. Always create for standalone job.
-    if labels.get('kubepmix.dev/create') == 'true' or 'jobset.sigs.k8s.io/jobset-uid' not in labels:
+    if labels.get('kubepmix.dev/create') == 'true' or not is_jobset:
 
         # For JobSets - create with size specified in kubepmix.dev/size
-        if 'jobset.sigs.k8s.io/jobset-uid' in labels:
-            parallelism=int(labels.get('kubepmix.dev/size', '0'))
-            log.info(f"Create mode: Registering namespaces {nspaces_to_create} with size: {parallelism} (from kubepmix.dev/size)")
+        if is_jobset:
+            parallelism = int(labels.get('kubepmix.dev/size', '0'))
+            log.info(f"Create mode: Registering namespace {nspace} with size: {parallelism} (from kubepmix.dev/size)")
         # For standalone Jobs - create with size specified in job spec parallelism
         else:
-            parallelism=job['spec'].get('parallelism', 0)
-            log.info(f"Create mode: Registering namespaces {nspaces_to_create} with size: {parallelism} (from job spec)")
+            parallelism = job['spec'].get('parallelism', 0)
+            log.info(f"Create mode: Registering namespace {nspace} with size: {parallelism} (from job spec)")
 
-        for nspace in nspaces_to_create:
+        for ns, ns_size in nspaces_to_create:
+            size = parallelism if ns_size is None else ns_size
             try:
                 loop = asyncio.get_event_loop()
                 await loop.run_in_executor(
                     None,
                     request.app['pmix'].register_nspace_and_clients,
-                    nspace, parallelism,
+                    ns, size,
                 )
             except Exception as e:
-                log.error("PMIx registration failed for %s: %s", nspace, e)
+                log.error("PMIx registration failed for %s: %s", ns, e)
                 patch = _annotation_patch(job, 'kubepmix.dev/registration-warning', str(e))
                 return _allow(uid, patch)
-        
-            request.app['ranks'].register(nspace, parallelism)
 
-    log.info(f"Allowing job with nspaces={nspaces_to_create}, will just mutate the pod labels")
-    return _allow(uid, _label_patch(job, nspaces_to_create[0], init_container_depth))
+            request.app['ranks'].register(ns, size)
+
+    log.info(f"Allowing job with nspaces={[ns for ns, _ in nspaces_to_create]}, will just mutate the pod labels")
+    return _allow(uid, _label_patch(job, nspace, init_container_depth))
 
 # --- Pod webhook ---
 
@@ -123,36 +131,67 @@ async def mutate_pod(request):
     log.info("Pod intercepted: %s/%s nspace=%s",
              pod['metadata'].get('namespace', ''), pod['metadata'].get('name', '<pending>'), nspace)
 
+    container_ranks = labels.get('kubepmix.dev/containerRanks')
+    container_rank_values = None
+    if container_ranks is not None:
+        try:
+            container_rank_values = [int(x.strip()) for x in container_ranks.split('-') if x.strip() != '']
+        except ValueError as e:
+            log.error("Invalid kubepmix.dev/containerRanks=%r: %s", container_ranks, e)
+            return _deny(uid, f"Invalid kubepmix.dev/containerRanks: {container_ranks}")
+
     rank_label = labels.get('kubepmix.dev/rank')
     patch = []
 
     # Mutate normal containers with the main namespace.
+    containers = pod.get('spec', {}).get('containers', [])
     try:
-        if rank_label is not None:
-            rank = request.app['ranks'].claim(nspace, int(rank_label))
+        if container_rank_values is not None:
+            if len(container_rank_values) != len(containers):
+                raise ValueError(
+                    f"kubepmix.dev/containerRanks has {len(container_rank_values)} ranks, "
+                    f"but pod has {len(containers)} containers"
+                )
+
+            for idx, explicit_rank in enumerate(container_rank_values):
+                rank = request.app['ranks'].claim(nspace, explicit_rank)
+
+                env = {}
+                loop = asyncio.get_event_loop()
+                await loop.run_in_executor(
+                    None,
+                    lambda r=rank, e=env: request.app['pmix'].setup_fork({'nspace': nspace, 'rank': r}, e),
+                )
+
+                env['PMIX_SECURITY_MODE'] = 'none'
+                env['PMIX_GDS_MODULE'] = 'hash'
+                patch.extend(_env_patch(pod, env, container_key='containers', container_index=idx))
         else:
-            rank = request.app['ranks'].assign(nspace)
+            if rank_label is not None:
+                rank = request.app['ranks'].claim(nspace, int(rank_label))
+            else:
+                rank = request.app['ranks'].assign(nspace)
+
+            log.info("Assigned rank %d to pod %s nspace=%s (explicit=%s)",
+                     rank, pod['metadata'].get('name', '<pending>'), nspace, rank_label is not None)
+
+            env = {}
+            try:
+                loop = asyncio.get_event_loop()
+                await loop.run_in_executor(
+                    None,
+                    lambda: request.app['pmix'].setup_fork({'nspace': nspace, 'rank': rank}, env),
+                )
+            except Exception as e:
+                log.error("setup_fork failed for %s:%d: %s", nspace, rank, e)
+                return _deny(uid, f"PMIx setup_fork failed: {e}")
+
+            env['PMIX_SECURITY_MODE'] = 'none'
+            env['PMIX_GDS_MODULE'] = 'hash'
+            patch.extend(_env_patch(pod, env, container_key='containers'))
     except (KeyError, ValueError, RuntimeError) as e:
         log.error("Rank assignment failed for %s: %s", nspace, e)
         return _deny(uid, str(e))
-
-    log.info("Assigned rank %d to pod %s nspace=%s (explicit=%s)",
-             rank, pod['metadata'].get('name', '<pending>'), nspace, rank_label is not None)
-
-    env = {}
-    try:
-        loop = asyncio.get_event_loop()
-        await loop.run_in_executor(
-            None,
-            lambda: request.app['pmix'].setup_fork({'nspace': nspace, 'rank': rank}, env),
-        )
-    except Exception as e:
-        log.error("setup_fork failed for %s:%d: %s", nspace, rank, e)
-        return _deny(uid, f"PMIx setup_fork failed: {e}")
-
-    env['PMIX_SECURITY_MODE'] = 'none'
-    env['PMIX_GDS_MODULE'] = 'hash'
-    patch.extend(_env_patch(pod, env, container_key='containers'))
 
     # If requested, mutate initContainers[0..depth] using namespace-init-{index}.
     if init_depth is not None:
@@ -167,10 +206,7 @@ async def mutate_pod(request):
 
             init_nspace = f"{nspace}-init-{init_idx}"
             try:
-                if rank_label is not None:
-                    init_rank = request.app['ranks'].claim(init_nspace, int(rank_label))
-                else:
-                    init_rank = request.app['ranks'].assign(init_nspace)
+                init_rank = request.app['ranks'].assign(init_nspace)
             except (KeyError, ValueError, RuntimeError) as e:
                 log.error("Rank assignment failed for %s: %s", init_nspace, e)
                 return _deny(uid, str(e))
