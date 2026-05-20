@@ -147,13 +147,7 @@ async def mutate_pod(request):
     containers = pod.get('spec', {}).get('containers', [])
     try:
         if container_rank_values is not None:
-            if len(container_rank_values) != len(containers):
-                raise ValueError(
-                    f"kubepmix.dev/containerRanks has {len(container_rank_values)} ranks, "
-                    f"but pod has {len(containers)} containers"
-                )
-
-            for idx, explicit_rank in enumerate(container_rank_values):
+            for idx, explicit_rank in enumerate(container_rank_values[:len(containers)]):
                 rank = request.app['ranks'].claim(nspace, explicit_rank)
 
                 env = {}
