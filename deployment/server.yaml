@@ -27,7 +27,7 @@ spec:
       serviceAccountName: kube-pmix
       containers:
         - name: kube-pmix
-          image: ghcr.io/kubepmix/kubepmix:0.0.10
+          image: ghcr.io/kubepmix/kubepmix:0.0.12
           ports:
             - name: pmix
               containerPort: 3333
