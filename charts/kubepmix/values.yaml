@@ -1,7 +1,7 @@
 # Scope
 # Namespace - Mutate pods in the release namespace only & enforce NetworkPolicy
 # Cluster - Mutate pods in all namespaces
-scope: Cluster
+scope: Namespace
 
 server:
   image:
@@ -11,4 +11,6 @@ server:
     port: 8443
   pmix:
     port: 3333
-    interface: eth0
+    envs:
+      - name: PMIX_MCA_ptl_tcp_if_include
+        value: "eth0"

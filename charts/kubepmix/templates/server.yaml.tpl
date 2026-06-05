@@ -43,12 +43,14 @@ spec:
               containerPort: {{ .Values.server.webhook.port }}
               protocol: TCP
           env:
-            - name: PMIX_MCA_psec
-              value: "none" # Do not check processes UID and GUID
+            {{- range .Values.server.pmix.envs }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+            {{- end }}
             - name: PMIX_MCA_ptl_tcp_ipv4_port
               value: {{ .Values.server.pmix.port | quote }}
-            - name: PMIX_MCA_ptl_tcp_if_include
-              value: {{ .Values.server.pmix.interface | quote }}
+            - name: PMIX_MCA_psec
+              value: "none" # Do not check processes UID and GUID
             - name: KUBE_PMIX_WEBHOOK_ENABLED
               value: "true"
             - name: KUBE_PMIX_WEBHOOK_PORT
