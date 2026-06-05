@@ -5,8 +5,8 @@ scope: Cluster
 
 server:
   image:
-    repository: ghcr.io/pmix/kubepmix
-    tag: latest
+    repository: ghcr.io/kubepmix/kubepmix
+    tag: 0.0.12
   webhook:
     port: 8443
   pmix:
