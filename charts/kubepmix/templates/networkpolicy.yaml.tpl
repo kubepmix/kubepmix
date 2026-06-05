@@ -1,7 +1,8 @@
+---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ printf "%s-pmix" (include "kubepmix.fullname" .) | quote }}
+  name: {{ printf "%s-controller" (include "kubepmix.fullname" .) | quote }}
   namespace: {{ .Release.Namespace }}
   labels:
     app.kubernetes.io/name: {{ include "kubepmix.name" . }}
@@ -10,17 +11,19 @@ metadata:
     helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" }}
 spec:
   podSelector:
-    matchExpressions:
-      - key: {{ ternary "kubepmix.dev/namespace" "kubepmix.dev/networkpolicy-disabled" (eq .Values.scope "Namespace") | quote }}
-        operator: Exists
+    matchLabels:
+      app.kubernetes.io/name: {{ include "kubepmix.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
   policyTypes:
     - Ingress
   ingress:
     - from:
-        - podSelector:
-            matchExpressions:
-              - key: {{ ternary "kubepmix.dev/namespace" "kubepmix.dev/networkpolicy-disabled" (eq .Values.scope "Namespace") | quote }}
-                operator: Exists
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Release.Namespace }}
       ports:
         - protocol: TCP
           port: {{ .Values.server.pmix.port }}
+    - ports:
+        - protocol: TCP
+          port: {{ .Values.server.webhook.port }}
