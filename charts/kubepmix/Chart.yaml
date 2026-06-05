@@ -1,0 +1,6 @@
+apiVersion: v2
+name: kubepmix
+description: A Helm chart for KubePMIx - a Kubernetes webhook for PMIx support
+type: application
+version: 0.1.0
+appVersion: "0.0.12"
