@@ -24,11 +24,13 @@ webhooks:
         resources: ["jobs"]
         operations: ["CREATE"]
         scope: "*"
+{{- if eq .Values.scope "Namespace" }}
     namespaceSelector:
       matchExpressions:
         - key: kubernetes.io/metadata.name
-          operator: {{ ternary "In" "NotIn" (eq .Values.scope "Namespace") }}
+          operator: In
           values: [{{ .Release.Namespace | quote }}]
+{{- end }}
 
   - name: pods.kube-pmix.io
     admissionReviewVersions: ["v1"]
@@ -50,8 +52,10 @@ webhooks:
         resources: ["pods"]
         operations: ["CREATE"]
         scope: "*"
+{{- if eq .Values.scope "Namespace" }}
     namespaceSelector:
       matchExpressions:
         - key: kubernetes.io/metadata.name
-          operator: {{ ternary "In" "NotIn" (eq .Values.scope "Namespace") }}
+          operator: In
           values: [{{ .Release.Namespace | quote }}]
+{{- end }}
