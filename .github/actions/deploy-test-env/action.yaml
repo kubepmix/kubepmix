@@ -8,6 +8,8 @@ runs:
   using: "composite"
   steps:
     - name: Install environment
+      env:
+        HELM_DRIVER: configmap
       shell: bash
       run: |
         helm -n ${{ inputs.name }} upgrade --install kubepmix charts/kubepmix --wait --create-namespace

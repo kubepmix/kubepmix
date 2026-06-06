@@ -8,6 +8,8 @@ runs:
   using: "composite"
   steps:
     - name: Install environment
+      env:
+        HELM_DRIVER: configmap
       shell: bash
       run: |
         helm -n ${{ inputs.name }} delete kubepmix --wait
