@@ -12,4 +12,4 @@ runs:
         HELM_DRIVER: configmap
       shell: bash
       run: |
-        helm -n ${{ inputs.name }} upgrade --install kubepmix charts/kubepmix --wait --create-namespace
+        helm -n ${{ inputs.name }} upgrade --install ${{ inputs.name }} charts/kubepmix --wait --create-namespace

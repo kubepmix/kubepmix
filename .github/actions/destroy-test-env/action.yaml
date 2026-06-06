@@ -12,5 +12,5 @@ runs:
         HELM_DRIVER: configmap
       shell: bash
       run: |
-        helm -n ${{ inputs.name }} delete kubepmix --wait
+        helm -n ${{ inputs.name }} delete ${{ inputs.name }} --wait
         kubectl delete ns ${{ inputs.name }} --wait
