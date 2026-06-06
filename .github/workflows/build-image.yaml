@@ -1,5 +1,5 @@
-name: Container
-run-name: Build Container by ${{ github.actor }}
+name: Package
+run-name: Build Container and Chart
 
 on:
   workflow_dispatch:
