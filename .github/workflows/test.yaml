@@ -13,7 +13,7 @@ permissions:
   packages: write
 
 jobs:
-  build-image:
+  test:
     runs-on: kubepmix-selfhosted-test
     steps:
       - uses: actions/checkout@v6
