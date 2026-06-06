@@ -1,0 +1,13 @@
+description: "Deploy test env"
+inputs:
+  name:
+    description: "Name of the test env"
+    required: true
+    default: "ci"
+runs:
+  using: "composite"
+  steps:
+    - name: Install environment
+      shell: bash
+      run: |
+        helm -n ${{ inputs.name }} upgrade --install kubepmix charts/kubepmix --wait --create-namespace
