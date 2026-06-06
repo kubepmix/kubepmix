@@ -5,7 +5,7 @@ metadata:
   annotations:
     cert-manager.io/inject-ca-from: {{ printf "%s/%s-tls" .Release.Namespace (include "kubepmix.fullname" .) | quote }}
 webhooks:
-  - name: jobs.kube-pmix.io
+  - name: jobs.kubepmix.dev
     admissionReviewVersions: ["v1"]
     sideEffects: None
     failurePolicy: Ignore
@@ -32,7 +32,7 @@ webhooks:
           values: [{{ .Release.Namespace | quote }}]
 {{- end }}
 
-  - name: pods.kube-pmix.io
+  - name: pods.kubepmix.dev
     admissionReviewVersions: ["v1"]
     sideEffects: None
     failurePolicy: Fail
