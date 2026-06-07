@@ -36,10 +36,8 @@ def job_logs(k8s_client, core_v1):
         body=client.V1DeleteOptions(propagation_policy="Foreground")
     )
 
-
 def test_log_count(job_logs):
     assert len(job_logs) == 4
-
 
 def test_log_has_myrank(job_logs):
     for log in job_logs:
