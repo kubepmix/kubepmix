@@ -4,7 +4,6 @@ import yaml
 from kubernetes import client, utils, dynamic
 from conftest import TEST_ID, wait_for_finalized_job, get_last_log_lines
 
-
 @pytest.fixture(scope="module")
 def job_logs(k8s_client, core_v1):
     manifest_path = "manifests/job.yaml"

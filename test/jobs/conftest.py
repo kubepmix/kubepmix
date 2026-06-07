@@ -1,11 +1,10 @@
 import pytest
 import time
-import yaml
-from kubernetes import client, config, utils, dynamic
-
+import os
+from kubernetes import client, config
 
 # Test ID is both NS name and release name, must be unique across all tests
-TEST_ID="citest"
+TEST_ID=os.getenv("TEST_ID", "test-job")
 
 def pytest_configure():
     try:
