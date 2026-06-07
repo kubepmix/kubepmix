@@ -27,6 +27,14 @@ jobs:
         with:
           name: ci-${{ github.run_id }}
 
+      - name: run-test
+        working-directory: test/jobs
+        env:
+          TEST_ID: ci-${{ github.run_id }}
+        shell: bash
+        run: |
+          pytest -sv
+
       - name: destroy-test-env
         uses: ./.github/actions/destroy-test-env
         if: always()
