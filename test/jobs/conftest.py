@@ -18,33 +18,6 @@ def k8s_client():
 def core_v1(k8s_client):
     return client.CoreV1Api(k8s_client)
 
-@pytest.fixture(scope="function")
-def deploy_manifest(k8s_client, core_v1, request):
-    manifest_path = request.param
-
-    with open(manifest_path) as f:
-        manifest = yaml.safe_load(f)
-
-    manifest["metadata"]["namespace"] = TEST_ID
-    utils.create_from_dict(k8s_client, manifest)
-    job_name = manifest["metadata"]["name"]
-
-    yield job_name, core_v1
-
-    # Teardown — always runs
-    dyn = dynamic.DynamicClient(k8s_client)
-    resource = dyn.resources.get(
-        api_version=manifest["apiVersion"],
-        kind=manifest["kind"]
-    )
-    resource.delete(
-        name=job_name,
-        namespace=TEST_ID,
-        body=client.V1DeleteOptions(
-            propagation_policy="Foreground"   # or "Background"
-        )
-    )
-
 def wait_for_finalized_job(core_v1, job_name, size=4, timeout=120):
     print(f"Waiting for job {job_name} in NS {TEST_ID} to complete with timeout {timeout}s...")
 
