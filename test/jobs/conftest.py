@@ -8,7 +8,10 @@ from kubernetes import client, config, utils, dynamic
 TEST_ID="citest"
 
 def pytest_configure():
-    config.load_kube_config()
+    try:
+        config.load_kube_config()
+    except config.config_exception.ConfigException:
+        config.load_incluster_config()
 
 @pytest.fixture(scope="session")
 def k8s_client():
