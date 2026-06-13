@@ -1,3 +1,4 @@
+name: "Deploy test env"
 description: "Deploy test env"
 inputs:
   name:
@@ -8,8 +9,56 @@ runs:
   using: "composite"
   steps:
     - name: Install environment
-      env:
-        HELM_DRIVER: configmap
       shell: bash
       run: |
-        helm -n ${{ inputs.name }} upgrade --install ${{ inputs.name }} charts/kubepmix --wait --create-namespace
+        set -euo pipefail
+
+        TEST_ENV_NAME="${{ inputs.name }}"
+        TEST_ENV_NAMESPACE="${{ inputs.name }}"
+        REPO_SSH_URL="ssh://git@github.com/${{ github.repository }}.git"
+        REF_BRANCH="${{ github.ref_name }}"
+        REF_COMMIT="${{ github.sha }}"
+
+        kubectl create namespace "$TEST_ENV_NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
+
+        cat <<EOF | kubectl apply -f -
+        ---
+        apiVersion: source.toolkit.fluxcd.io/v1
+        kind: GitRepository
+        metadata:
+          name: $TEST_ENV_NAME
+        spec:
+          interval: 5m0s
+          url: $REPO_SSH_URL
+          ref:
+            branch: $REF_BRANCH
+            commit: $REF_COMMIT
+          secretRef:
+            name: kubepmix-deploykey
+        ---
+        apiVersion: helm.toolkit.fluxcd.io/v2
+        kind: HelmRelease
+        metadata:
+          name: $TEST_ENV_NAME
+        spec:
+          interval: 15m
+          timeout: 5m
+          chart:
+            spec:
+              chart: ./charts/kubepmix
+              sourceRef:
+                kind: GitRepository
+                name: $TEST_ENV_NAME
+              interval: 5m
+          releaseName: $TEST_ENV_NAME
+          targetNamespace: $TEST_ENV_NAMESPACE
+          waitStrategy:
+            name: poller
+          disableWait: false
+          healthCheckExprs:
+            - apiVersion: v1
+              kind: Pod
+              current: status.conditions.filter(e, e.type == 'Ready').all(e, e.status == 'True')
+        EOF
+
+        kubectl wait --for=condition=Ready "helmrelease/$TEST_ENV_NAME" --timeout=10m

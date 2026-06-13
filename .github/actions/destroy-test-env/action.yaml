@@ -1,3 +1,4 @@
+name: "Destroy test env"
 description: "Destroy test env"
 inputs:
   name:
@@ -8,9 +9,9 @@ runs:
   using: "composite"
   steps:
     - name: Install environment
-      env:
-        HELM_DRIVER: configmap
       shell: bash
       run: |
-        helm -n ${{ inputs.name }} delete ${{ inputs.name }} --wait
-        kubectl delete ns ${{ inputs.name }} --wait
+        set -euo pipefail
+        kubectl -n "${{ inputs.name }}" delete helmrelease "${{ inputs.name }}" --ignore-not-found=true --wait=true
+        kubectl -n "${{ inputs.name }}" delete gitrepository "${{ inputs.name }}" --ignore-not-found=true --wait=true
+        kubectl delete ns "${{ inputs.name }}" --ignore-not-found=true --wait
