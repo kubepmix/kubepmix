@@ -33,6 +33,7 @@ jobs:
           TEST_ID: ci-${{ github.run_id }}
         shell: bash
         run: |
+          sleep infinity
           pytest -sv
 
       - name: destroy-test-env
