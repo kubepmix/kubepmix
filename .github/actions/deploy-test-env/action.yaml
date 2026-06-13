@@ -19,8 +19,6 @@ runs:
         REF_BRANCH="${{ github.ref_name }}"
         REF_COMMIT="${{ github.sha }}"
 
-        kubectl create namespace "$TEST_ENV_NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
-
         cat <<EOF | kubectl apply -f -
         ---
         apiVersion: source.toolkit.fluxcd.io/v1
