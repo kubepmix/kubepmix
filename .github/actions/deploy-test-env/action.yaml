@@ -61,6 +61,8 @@ runs:
             - apiVersion: v1
               kind: Pod
               current: status.conditions.filter(e, e.type == 'Ready').all(e, e.status == 'True')
+          values:
+            createCIJobRBAC: true
         EOF
 
         kubectl wait --for=condition=Ready "helmrelease/$TEST_ENV_NAME" --timeout=10m

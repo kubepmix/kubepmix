@@ -14,3 +14,6 @@ server:
     envs:
       - name: PMIX_MCA_ptl_tcp_if_include
         value: "eth0"
+
+# Create RBAC resources required for the CI job (create jobs, create job sets, see pods, logs,...)
+createCIJobRBAC: false
