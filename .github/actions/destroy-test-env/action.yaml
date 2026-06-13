@@ -12,6 +12,6 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
-        kubectl -n "${{ inputs.name }}" delete helmrelease "${{ inputs.name }}" --ignore-not-found=true --wait=true
-        kubectl -n "${{ inputs.name }}" delete gitrepository "${{ inputs.name }}" --ignore-not-found=true --wait=true
+        kubectl -n arc delete helmrelease "${{ inputs.name }}" --ignore-not-found=true --wait=true
+        kubectl -n arc delete gitrepository "${{ inputs.name }}" --ignore-not-found=true --wait=true
         kubectl delete ns "${{ inputs.name }}" --ignore-not-found=true --wait
