@@ -23,7 +23,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ include "kubepmix.fullname" . }}-ci-role
+  name: {{ include "kubepmix.fullname" . }}-ci-rolebinding
   namespace: {{ .Release.Namespace }}
 subjects:
   # Hardcoded this
