@@ -54,8 +54,8 @@ runs:
           targetNamespace: $TEST_ENV_NAMESPACE
           waitStrategy:
             name: poller
-          disableWait: false
           install:
+            disableWait: false
             createNamespace: true
           healthCheckExprs:
             - apiVersion: v1
