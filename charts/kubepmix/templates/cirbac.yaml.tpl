@@ -10,9 +10,6 @@ rules:
   - apiGroups: [""]
     resources: ["pods/log"]
     verbs: ["get", "list"]
-  - apiGroups: ["admissionregistration.k8s.io"]
-    resources: ["mutatingwebhookconfigurations"]
-    verbs: ["get", "create", "delete"]
   - apiGroups: [""]
     resources: ["serviceaccounts", "services", "configmaps"]
     verbs: ["get", "create", "delete", "list"]
@@ -41,5 +38,5 @@ subjects:
     namespace: arc
 roleRef:
   kind: Role
-  name: kubepmix-selfhosted-test-role
+  name: {{ include "kubepmix.fullname" . }}-ci-role
   apiGroup: rbac.authorization.k8s.io
