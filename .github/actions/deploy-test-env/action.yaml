@@ -27,6 +27,7 @@ runs:
         kind: GitRepository
         metadata:
           name: $TEST_ENV_NAME
+          namespace: arc
         spec:
           interval: 5m0s
           url: $REPO_SSH_URL
@@ -40,6 +41,7 @@ runs:
         kind: HelmRelease
         metadata:
           name: $TEST_ENV_NAME
+          namespace: arc
         spec:
           interval: 15m
           timeout: 5m
@@ -55,6 +57,8 @@ runs:
           waitStrategy:
             name: poller
           disableWait: false
+          install:
+            createNamespace: true
           healthCheckExprs:
             - apiVersion: v1
               kind: Pod
