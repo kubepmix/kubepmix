@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: pmix-example
+  name: job-example
   labels:
     kubepmix.dev/enabled: "true"
 spec:
@@ -11,4 +11,4 @@ spec:
       restartPolicy: Never
       containers:
         - name: worker
-          image: ghcr.io/jjlakis/simplempi:0.1.0
+          image: ghcr.io/jjlakis/simplempi:0.6.0
