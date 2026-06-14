@@ -1,18 +1,20 @@
-name: Package
+name: Build CI Image
 run-name: Build CI image
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - image-build
+  workflow_call:
+    outputs:
+      tags:
+        description: "The image tags"
+        value: ${{ jobs.build-image.outputs.tags }}
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
   build-image:
+    outputs:
+      tags: ${{ steps.meta.outputs.tags }}
     runs-on: kubepmix-selfhosted
     steps:
       - uses: actions/checkout@v6
