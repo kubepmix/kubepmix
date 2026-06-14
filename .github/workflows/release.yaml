@@ -9,6 +9,8 @@ on:
     paths:
       - "src/**"
       - "charts/**"
+    tags:
+      - "*"
 
 permissions:
   contents: read
@@ -78,8 +80,9 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   create-release:
+    if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') }}
     needs: build-image
-    name: Create GitHub release
+    name: Create release
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -92,7 +95,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ needs.build-image.outputs.version }}
-          name: Release ${{ needs.build-image.outputs.version }}
+          name: KubePMIx ${{ needs.build-image.outputs.version }}
           body: |
             Release created from branch ${{ github.ref_name }} with commit ${{ github.sha }}.
             Image: ghcr.io/${{ github.repository }}:${{ needs.build-image.outputs.version }}
