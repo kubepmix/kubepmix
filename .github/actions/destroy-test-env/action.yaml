@@ -1,16 +1,20 @@
+name: "Destroy test env"
 description: "Destroy test env"
 inputs:
   name:
     description: "Name of the test env"
     required: true
     default: "ci"
+  namespace:
+    description: "Namespace of the test env"
+    required: false
+    default: "ci"
 runs:
   using: "composite"
   steps:
     - name: Install environment
+      shell: bash
       env:
         HELM_DRIVER: configmap
-      shell: bash
       run: |
-        helm -n ${{ inputs.name }} delete ${{ inputs.name }} --wait
-        kubectl delete ns ${{ inputs.name }} --wait
+        helm -n ${{ inputs.namespace }} delete ${{ inputs.name }} --wait --timeout 5m
