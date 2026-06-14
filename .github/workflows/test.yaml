@@ -22,7 +22,6 @@ permissions:
 jobs:
   test:
     name: Run Test
-    needs: build-image
     runs-on: kubepmix-selfhosted-test
     steps:
       - uses: actions/checkout@v6
