@@ -1,7 +1,10 @@
-# Scope
-# Namespace - Mutate pods in the release namespace only & enforce NetworkPolicy
-# Cluster - Mutate pods in all namespaces
-scope: Namespace
+# When true - inject namespaceSelector to Release namespace in the Mutating webhook
+namespaced: false
+
+# additional job & pod selector for mutating webhook. useful for CI jobs collocated in a single namespace
+# additionalObjectSelector:
+#   matchLabels:
+#     ci.kubepmix.dev/job-id: "123456"
 
 server:
   image:
@@ -14,6 +17,3 @@ server:
     envs:
       - name: PMIX_MCA_ptl_tcp_if_include
         value: "eth0"
-
-# Create RBAC resources required for the CI job (create jobs, create job sets, see pods, logs,...)
-createCIJobRBAC: false

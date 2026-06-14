@@ -18,13 +18,14 @@ webhooks:
     objectSelector:
       matchLabels:
         kubepmix.dev/enabled: "true"
+      {{ .Values.additionalObjectSelector | toYaml | indent 6 }}
     rules:
       - apiGroups: ["batch"]
         apiVersions: ["v1"]
         resources: ["jobs"]
         operations: ["CREATE"]
         scope: "*"
-{{- if eq .Values.scope "Namespace" }}
+{{- if eq .Values.namespaced "true" }}
     namespaceSelector:
       matchExpressions:
         - key: kubernetes.io/metadata.name
@@ -46,13 +47,14 @@ webhooks:
       matchExpressions:
         - key: kubepmix.dev/namespace
           operator: Exists
+      {{ .Values.additionalObjectSelector | toYaml | indent 6 }}
     rules:
       - apiGroups: [""]
         apiVersions: ["v1"]
         resources: ["pods"]
         operations: ["CREATE"]
         scope: "*"
-{{- if eq .Values.scope "Namespace" }}
+{{- if eq .Values.namespaced "true" }}
     namespaceSelector:
       matchExpressions:
         - key: kubernetes.io/metadata.name

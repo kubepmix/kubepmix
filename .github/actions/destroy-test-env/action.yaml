@@ -5,13 +5,14 @@ inputs:
     description: "Name of the test env"
     required: true
     default: "ci"
+  namespace:
+    description: "Namespace of the test env"
+    required: false
+    default: "ci"
 runs:
   using: "composite"
   steps:
     - name: Install environment
       shell: bash
       run: |
-        set -euo pipefail
-        kubectl -n arc delete helmrelease "${{ inputs.name }}" --ignore-not-found=true --wait=true
-        kubectl -n arc delete gitrepository "${{ inputs.name }}" --ignore-not-found=true --wait=true
-        kubectl delete ns "${{ inputs.name }}" --ignore-not-found=true --wait
+        helm -n ${{ inputs.namespace }} delete ${{ inputs.name }} --wait --timeout 5m
