@@ -20,11 +20,6 @@ permissions:
   contents: read
 
 jobs:
-  build-image:
-    name: CI image
-    uses: ./.github/workflows/rw-build-image-ci.yaml
-    secrets: inherit
-
   test:
     name: Run Test
     needs: build-image
