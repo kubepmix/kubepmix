@@ -1,33 +1,20 @@
-name: Main
+name: Release
 run-name: Release
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - "src/**"
-      - "charts/**"
-    tags:
-      - "*"
 
 permissions:
   contents: read
   packages: write
 
 jobs:
-  test:
-    name: PR Test
-    uses: ./.github/workflows/rw-test.yaml
-    secrets: inherit
-
-  build-image:
-    needs: test
-    name: Build release image
-    runs-on: kubepmix-selfhosted
-    outputs:
-      version: ${{ steps.semver.outputs.version }}
+  create-release:
+    needs: build-image
+    name: Create release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v6
         with:
@@ -44,58 +31,11 @@ jobs:
           version_format: "${major}.${minor}.${patch}"
           bump_each_commit: true
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Docker Metadata
-        id: meta
-        uses: docker/metadata-action@v6
-        with:
-          images: |
-            ghcr.io/${{ github.repository }}
-          tags: |
-            type=raw,value=${{ steps.semver.outputs.version }}
-            type=raw,value=latest,enable={{ is_default_branch }}
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          driver: remote
-          endpoint: ${{ secrets.BUILDKIT_ENDPOINT }}
-        env:
-          BUILDER_NODE_0_AUTH_TLS_CACERT: ${{ secrets.BUILDKIT_CA_CRT }}
-          BUILDER_NODE_0_AUTH_TLS_CERT: ${{ secrets.BUILDKIT_TLS_CRT }}
-          BUILDER_NODE_0_AUTH_TLS_KEY: ${{ secrets.BUILDKIT_TLS_KEY }}
-
-      - name: Build and push
-        uses: docker/build-push-action@v7
-        with:
-          context: ./src
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
-  create-release:
-    if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') }}
-    needs: build-image
-    name: Create release
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
-          tag: ${{ needs.build-image.outputs.version_tag }}
-          name: KubePMIx ${{ needs.build-image.outputs.version }}
+          tag: ${{ steps.semver.outputs.version_tag }}
+          name: KubePMIx ${{ steps.semver.outputs.version }}
           body: |
             Release created from branch ${{ github.ref_name }} with commit ${{ github.sha }}.
-            Image: ghcr.io/${{ github.repository }}:${{ needs.build-image.outputs.version }}
+            Image: ghcr.io/${{ github.repository }}:${{ steps.semver.outputs.version }}
