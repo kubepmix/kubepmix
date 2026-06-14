@@ -94,7 +94,7 @@ jobs:
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
-          tag: ${{ needs.build-image.outputs.version }}
+          tag: ${{ needs.build-image.outputs.version_tag }}
           name: KubePMIx ${{ needs.build-image.outputs.version }}
           body: |
             Release created from branch ${{ github.ref_name }} with commit ${{ github.sha }}.
