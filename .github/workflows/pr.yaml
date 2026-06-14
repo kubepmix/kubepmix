@@ -1,0 +1,16 @@
+name: PR
+run-name: "PR #${{ github.event.pull_request.number }}"
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: PR Test
+    uses: ./.github/workflows/rw-test.yaml
+    secrets: inherit
