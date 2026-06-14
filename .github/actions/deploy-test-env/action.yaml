@@ -17,4 +17,4 @@ runs:
       env:
         HELM_DRIVER: configmap
       run: |
-        helm -n ${{ inputs.namespace }} upgrade --install ${{ inputs.name }} charts/kubepmix --set-string "additionalObjectSelector.matchLabels.ci\.kubepmix\.dev/test-id=${{ inputs.name }}" --wait --create-namespace
+        helm -n ${{ inputs.namespace }} upgrade --install ${{ inputs.name }} charts/kubepmix --set-string "additionalObjectSelector.matchLabels.ci\.kubepmix\.dev/test-id=${{ inputs.name }}" --wait
