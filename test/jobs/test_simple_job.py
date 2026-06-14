@@ -10,8 +10,9 @@ def job_logs(k8s_client, core_v1):
     with open(manifest_path) as f:
         manifest = yaml.safe_load(f)
 
-    manifest["metadata"]["labels"]["ci.kubepmix.dev/test-id"] = TEST_ID
     manifest["metadata"]["namespace"] = TEST_NAMESPACE
+    manifest["metadata"]["labels"]["ci.kubepmix.dev/test-id"] = TEST_ID
+    manifest["spec"]["template"]["metadata"] = {"labels": {"ci.kubepmix.dev/test-id": TEST_ID}}
     
     print(f"Deploying manifest for test {TEST_ID} from {manifest_path}...")
     utils.create_from_dict(k8s_client, manifest)
