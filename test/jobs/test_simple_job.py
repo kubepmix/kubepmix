@@ -10,6 +10,8 @@ def job_logs(k8s_client, core_v1):
     with open(manifest_path) as f:
         manifest = yaml.safe_load(f)
 
+    # Inject namespace and special label to the example manifest
+    # KubePMIx is created from chart with ci.kubepmix.dev/test-id set to TEST_ID
     manifest["metadata"]["namespace"] = TEST_NAMESPACE
     manifest["metadata"]["labels"]["ci.kubepmix.dev/test-id"] = TEST_ID
     manifest["spec"]["template"]["metadata"] = {"labels": {"ci.kubepmix.dev/test-id": TEST_ID}}
