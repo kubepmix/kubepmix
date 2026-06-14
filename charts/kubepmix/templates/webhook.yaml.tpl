@@ -18,7 +18,9 @@ webhooks:
     objectSelector:
       matchLabels:
         kubepmix.dev/enabled: "true"
-      {{ .Values.additionalObjectSelector | toYaml | indent 6 }}
+{{- with .Values.additionalObjectSelector }}
+{{- toYaml . | nindent 6 }}
+{{- end }}
     rules:
       - apiGroups: ["batch"]
         apiVersions: ["v1"]
@@ -47,7 +49,9 @@ webhooks:
       matchExpressions:
         - key: kubepmix.dev/namespace
           operator: Exists
-      {{ .Values.additionalObjectSelector | toYaml | indent 6 }}
+{{- with .Values.additionalObjectSelector }}
+{{- toYaml . | nindent 6 }}
+{{- end }}
     rules:
       - apiGroups: [""]
         apiVersions: ["v1"]
