@@ -1,4 +1,4 @@
-name: Package
+name: Release
 run-name: Build Container and Chart
 
 on:
@@ -8,6 +8,7 @@ on:
       - main
     paths:
       - "src/**"
+      - "charts/**"
 
 permissions:
   contents: read
@@ -15,6 +16,7 @@ permissions:
 
 jobs:
   build-image:
+    name: Build release image
     runs-on: kubepmix-selfhosted
     steps:
       - uses: actions/checkout@v6
