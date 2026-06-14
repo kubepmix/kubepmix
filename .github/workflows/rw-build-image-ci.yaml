@@ -13,6 +13,7 @@ permissions:
 
 jobs:
   build-image:
+    name: Build
     outputs:
       tags: ${{ steps.meta.outputs.tags }}
     runs-on: kubepmix-selfhosted

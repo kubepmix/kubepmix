@@ -18,10 +18,12 @@ permissions:
 
 jobs:
   build-image:
+    name: Build CI image
     uses: ./.github/workflows/rw-build-image-ci.yaml
     secrets: inherit
 
   test:
+    name: Run Test
     needs: build-image
     runs-on: kubepmix-selfhosted-test
     steps:
