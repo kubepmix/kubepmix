@@ -17,7 +17,14 @@ permissions:
   packages: write
 
 jobs:
+  build-image:
+    name: Build CI image
+    uses: ./.github/workflows/rw-build-image-ci.yaml
+    secrets: inherit
+
   test:
+    name: Run Test
+    needs: build-image
     runs-on: kubepmix-selfhosted-test
     steps:
       - uses: actions/checkout@v6
@@ -28,6 +35,7 @@ jobs:
         uses: ./.github/actions/deploy-test-env
         with:
           name: ci-${{ github.run_id }}
+          image: ${{ needs.build-image.outputs.tags }}
 
       - name: Run Job tests
         working-directory: test/jobs
