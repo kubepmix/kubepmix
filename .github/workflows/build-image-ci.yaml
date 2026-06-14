@@ -22,7 +22,7 @@ jobs:
         uses: docker/metadata-action@v6
         with:
           images: |
-            registry.registry/${{ github.repository }}
+            registry.registry:5000/${{ github.repository }}
           tags: |
             type=raw,value=${{ github.sha }}
 
