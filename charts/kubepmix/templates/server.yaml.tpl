@@ -34,7 +34,7 @@ spec:
       serviceAccountName: {{ include "kubepmix.fullname" . }}
       containers:
         - name: {{ include "kubepmix.name" . }}
-          image: {{ printf "%s:%s" .Values.server.image.repository .Values.server.image.tag | quote }}
+          image: {{ .Values.server.image }}
           ports:
             - name: pmix
               containerPort: {{ .Values.server.pmix.port }}
