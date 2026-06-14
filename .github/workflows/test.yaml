@@ -1,5 +1,5 @@
 name: Test
-run-name: Test KubePMIx
+run-name: Test KubePMIX (${{ github.event_name == 'pull_request' && format('PR #{0}', github.event.pull_request.number) || github.ref_name }})
 
 on:
   workflow_dispatch:
@@ -22,12 +22,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: deploy-test-env
+      - name: Deploy test environment
         uses: ./.github/actions/deploy-test-env
         with:
           name: ci-${{ github.run_id }}
 
-      - name: run-test
+      - name: Run Job tests
         working-directory: test/jobs
         env:
           TEST_ID: ci-${{ github.run_id }}
@@ -35,7 +35,7 @@ jobs:
         run: |
           pytest -sv
 
-      - name: destroy-test-env
+      - name: Destroy test environment
         uses: ./.github/actions/destroy-test-env
         if: always()
         with:
