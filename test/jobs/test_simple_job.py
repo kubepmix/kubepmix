@@ -10,7 +10,7 @@ def job_logs(k8s_client, core_v1):
     with open(manifest_path) as f:
         manifest = yaml.safe_load(f)
 
-    manifest["metadata"]["labels"] = {"ci.kubepmix.dev/test-id": TEST_ID}
+    manifest["metadata"]["labels"]["ci.kubepmix.dev/test-id"] = TEST_ID
     manifest["metadata"]["namespace"] = TEST_NAMESPACE
     
     print(f"Deploying manifest for test {TEST_ID} from {manifest_path}...")
@@ -48,7 +48,6 @@ def test_log_has_myhostname(job_logs):
     for log in job_logs:
         assert log.get("myhostname") is not None, f"Missing 'myhostname' in: {log}"
 
-
 def test_log_ranks_length(job_logs):
     for log in job_logs:
         assert len(log.get("ranks", [])) == 4, f"Expected 'ranks' length 4 in: {log}"
@@ -56,5 +55,5 @@ def test_log_ranks_length(job_logs):
 def test_pmix_env_vars_set(job_logs):
     for log in job_logs:
         env = log.get("myenvs", {})
-        assert env.get("PMIX_RANK") is not None, f"Missing PMIX_RANK in: {log}"
-        assert env.get("PMIX_NAMESPACE") is not None, f"Missing PMIX_NAMESPACE in: {log}"
+        assert env.get("PMIX_RANK") is not None, f"Pod was not mutated! Missing PMIX_RANK in: {log}"
+        assert env.get("PMIX_NAMESPACE") is not None, f"Pod was not mutated! Missing PMIX_NAMESPACE in: {log}"
