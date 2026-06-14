@@ -14,5 +14,7 @@ runs:
   steps:
     - name: Install environment
       shell: bash
+      env:
+        HELM_DRIVER: configmap
       run: |
         helm -n ${{ inputs.namespace }} delete ${{ inputs.name }} --wait --timeout 5m
