@@ -1,5 +1,5 @@
-name: Release
-run-name: Build Container and Chart
+name: Main
+run-name: Release
 
 on:
   workflow_dispatch:
@@ -15,9 +15,17 @@ permissions:
   packages: write
 
 jobs:
+  test:
+    name: PR Test
+    uses: ./.github/workflows/rw-test.yaml
+    secrets: inherit
+
   build-image:
+    needs: test
     name: Build release image
     runs-on: kubepmix-selfhosted
+    outputs:
+      version: ${{ steps.semver.outputs.version }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -32,7 +40,6 @@ jobs:
           minor_pattern: "/feat(\\(.+\\))?:/"
           minor_regexp_flags: ""
           version_format: "${major}.${minor}.${patch}"
-          change_path: "src"
           bump_each_commit: true
 
       - name: Login to GitHub Container Registry
@@ -69,3 +76,21 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+  create-release:
+    needs: build-image
+    name: Create GitHub release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ needs.build-image.outputs.version }}
+          name: Release ${{ needs.build-image.outputs.version }}
+          body: |
+            Release created from branch ${{ github.ref_name }} with commit ${{ github.sha }}.
+            Image: ghcr.io/${{ github.repository }}:${{ needs.build-image.outputs.version }}
