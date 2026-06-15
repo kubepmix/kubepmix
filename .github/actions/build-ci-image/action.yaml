@@ -1,0 +1,33 @@
+# Assumes repo is cloned by calling workflow
+
+name: "Build CI image"
+description: "Build CI image"
+outputs:
+  tags:
+    description: "The image tags"
+    value: ${{ steps.meta.outputs.tags }}
+runs:
+  using: "composite"
+  steps:
+    - name: Docker Metadata
+      id: meta
+      uses: docker/metadata-action@v6
+      with:
+        images: |
+          registry.registry:5000/${{ github.repository }}
+        tags: |
+          type=raw,value=${{ github.sha }}
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      with:
+        driver: remote
+        endpoint: tcp://buildkitd.buildkit:1234
+
+    - name: Build and push
+      uses: docker/build-push-action@v7
+      with:
+        context: ./src
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
