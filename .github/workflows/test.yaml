@@ -39,13 +39,18 @@ jobs:
           name: ci-${{ github.run_id }}
           image: registry.registry:5000/${{ github.repository }}:${{ github.sha }}
 
-      - name: Run Job tests
+      - name: Run tests
+        run: pytest -sv --junitxml=results.xml
         working-directory: test/jobs
-        env:
-          TEST_ID: ci-${{ github.run_id }}
-        shell: bash
-        run: |
-          pytest -sv
+
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: KubePMIx E2E Tests
+          path: test/jobs/results.xml
+          reporter: java-junit
+          fail-on-error: true
 
       - name: Destroy test environment
         uses: ./.github/actions/destroy-test-env
