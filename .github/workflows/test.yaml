@@ -28,14 +28,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: ./.github/actions/build-ci-image
-        id: build-ci-image
+      - uses: ./.github/actions/build-image
+        id: build-image
+        with:
+          tags: registry.registry:5000/${{ github.repository }}:${{ github.sha }}
 
       - name: Deploy test environment
         uses: ./.github/actions/deploy-test-env
         with:
           name: ci-${{ github.run_id }}
-          image: ${{ steps.build-ci-image.outputs.tags }}
+          image: registry.registry:5000/${{ github.repository }}:${{ github.sha }}
 
       - name: Run Job tests
         working-directory: test/jobs
