@@ -19,6 +19,7 @@ runs:
           type=raw,value=${{ github.sha }}
 
     - name: Debug print envs
+      shell: bash
       run: env
 
     - name: Set up Docker Buildx
