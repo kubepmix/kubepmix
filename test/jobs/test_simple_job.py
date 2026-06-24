@@ -58,23 +58,22 @@ def job_logs(k8s_client, core_v1):
         body=client.V1DeleteOptions(propagation_policy="Foreground")
     )
 
-def test_log_count(job_logs):
+def test_all_pods_finished(job_logs):
     assert len(job_logs) == 4
 
-def test_log_has_myrank(job_logs):
+def test_each_pod_knows_its_rank(job_logs):
     for log in job_logs:
         assert log.get("myrank") is not None, f"Missing 'myrank' in: {log}"
 
-
-def test_log_has_myhostname(job_logs):
+def test_each_pod_knows_its_hostname(job_logs):
     for log in job_logs:
         assert log.get("myhostname") is not None, f"Missing 'myhostname' in: {log}"
 
-def test_log_sees_all_ranks(job_logs):
+def test_each_pod_knows_all_ranks(job_logs):
     for log in job_logs:
         assert len(log.get("ranks", [])) == 4, f"Pod just sees itself. Expected 'ranks' length 4 in: {log}"
 
-def test_pmix_env_pod_was_mutated(job_logs):
+def test_each_pod_has_pmix_env_vars(job_logs):
     for log in job_logs:
         env = log.get("myenvs", {})
         assert env.get("PMIX_RANK") is not None, f"Pod was not mutated! Missing PMIX_RANK in: {log}"
