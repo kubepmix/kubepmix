@@ -27,7 +27,7 @@ webhooks:
         resources: ["jobs"]
         operations: ["CREATE"]
         scope: "*"
-{{- if eq .Values.namespaced "true" }}
+{{- if .Values.namespaced }}
     namespaceSelector:
       matchExpressions:
         - key: kubernetes.io/metadata.name
@@ -58,7 +58,7 @@ webhooks:
         resources: ["pods"]
         operations: ["CREATE"]
         scope: "*"
-{{- if eq .Values.namespaced "true" }}
+{{- if .Values.namespaced }}
     namespaceSelector:
       matchExpressions:
         - key: kubernetes.io/metadata.name

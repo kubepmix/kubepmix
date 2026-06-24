@@ -30,19 +30,17 @@ def job_logs(k8s_client, core_v1):
         manifest = yaml.safe_load(f)
 
     # Inject name, namespace and special label to the example manifest
-    # KubePMIx is created from chart with ci.kubepmix.dev/test-id set to TEST_ID
     manifest["metadata"]["name"] = TEST_ID
     manifest["metadata"]["namespace"] = TEST_NAMESPACE
     manifest["metadata"]["labels"]["ci.kubepmix.dev/test-id"] = TEST_ID
     manifest["spec"]["template"]["metadata"] = {"labels": {"ci.kubepmix.dev/test-id": TEST_ID}}
-    
+
     print(f"Deploying manifest for test {TEST_ID} from {manifest_path}...")
     utils.create_from_dict(k8s_client, manifest)
-    job_name = manifest["metadata"]["name"]
 
-    print(f"Waiting for Job {job_name} to complete...")
-    wait_for_finalized_job(core_v1, job_name, size=4, timeout=120)
-    raw_logs = get_last_log_lines(core_v1, f"job-name={job_name}")
+    print(f"Waiting for Job {TEST_ID} to complete...")
+    wait_for_finalized_job(core_v1, TEST_ID, size=4, timeout=120)
+    raw_logs = get_last_log_lines(core_v1, f"job-name={TEST_ID}")
     parsed = [json.loads(log) for log in raw_logs]
 
     yield parsed
@@ -52,9 +50,9 @@ def job_logs(k8s_client, core_v1):
         api_version=manifest["apiVersion"],
         kind=manifest["kind"]
     )
-    print(f"Removing object {job_name}...")
+    print(f"Removing object {TEST_ID}...")
     resource.delete(
-        name=job_name,
+        name=TEST_ID,
         namespace=TEST_NAMESPACE,
         body=client.V1DeleteOptions(propagation_policy="Foreground")
     )
@@ -70,12 +68,16 @@ def test_each_pod_knows_its_hostname(job_logs):
     for log in job_logs:
         assert log.get("myhostname") is not None, f"Missing 'myhostname' in: {log}"
 
-def test_each_pod_has_pmix_env_vars(job_logs):
+def test_each_pod_is_mutated_with_pmix_env_vars(job_logs):
     for log in job_logs:
         env = log.get("myenvs", {})
         assert env.get("PMIX_RANK") is not None, f"Pod was not mutated! Missing PMIX_RANK in: {log}"
         assert env.get("PMIX_NAMESPACE") is not None, f"Pod was not mutated! Missing PMIX_NAMESPACE in: {log}"
 
-def test_each_pod_knows_all_ranks(job_logs):
+def test_there_is_just_one_rank_zero(job_logs):
+    rank_0_logs = [log for log in job_logs if log.get("myrank") == 0]
+    assert len(rank_0_logs) == 1, f"Expected exactly one pod with rank 0, found {len(rank_0_logs)}"
+
+def test_each_pod_knows_sees_correct_world_size(job_logs):
     for log in job_logs:
         assert len(log.get("ranks", [])) == 4, f"Pod just sees itself. Expected 'ranks' length 4 in: {log}"
