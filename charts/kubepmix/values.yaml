@@ -7,7 +7,7 @@ namespaced: "false"
 #     ci.kubepmix.dev/job-id: "123456"
 
 server:
-  image: ghcr.io/kubepmix/kubepmix:0.0.12
+  image: ghcr.io/kubepmix/kubepmix:0.0.61
   webhook:
     port: 8443
   pmix:
