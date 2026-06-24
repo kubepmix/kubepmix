@@ -39,8 +39,8 @@ jobs:
           name: ci-${{ github.run_id }}
           image: registry.registry:5000/${{ github.repository }}:${{ github.sha }}
 
-      - name: Run Job tests
-        working-directory: test/jobs
+      - name: Run Kubernetes tests
+        working-directory: test/kubernetes
         env:
           TEST_ID: ci-${{ github.run_id }}
         shell: bash
