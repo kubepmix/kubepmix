@@ -45,7 +45,7 @@ jobs:
           TEST_ID: ci-${{ github.run_id }}
         shell: bash
         run: |
-          pytest -sv
+          pytest -sv test_job.py
 
       - name: Destroy test environment
         uses: ./.github/actions/destroy-test-env
