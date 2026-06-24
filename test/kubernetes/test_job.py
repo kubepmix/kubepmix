@@ -70,7 +70,7 @@ def test_each_pod_knows_its_hostname(job_logs):
     for log in job_logs:
         assert log.get("myhostname") is not None, f"Missing 'myhostname' in: {log}"
 
-def test_each_pod_has_pmix_env_vars(job_logs):
+def test_each_pod_is_mutated_with_pmix_env_vars(job_logs):
     for log in job_logs:
         env = log.get("myenvs", {})
         assert env.get("PMIX_RANK") is not None, f"Pod was not mutated! Missing PMIX_RANK in: {log}"
