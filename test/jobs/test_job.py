@@ -29,8 +29,9 @@ def job_logs(k8s_client, core_v1):
     with open(manifest_path) as f:
         manifest = yaml.safe_load(f)
 
-    # Inject namespace and special label to the example manifest
+    # Inject name, namespace and special label to the example manifest
     # KubePMIx is created from chart with ci.kubepmix.dev/test-id set to TEST_ID
+    manifest["metadata"]["name"] = TEST_ID
     manifest["metadata"]["namespace"] = TEST_NAMESPACE
     manifest["metadata"]["labels"]["ci.kubepmix.dev/test-id"] = TEST_ID
     manifest["spec"]["template"]["metadata"] = {"labels": {"ci.kubepmix.dev/test-id": TEST_ID}}
@@ -69,12 +70,12 @@ def test_each_pod_knows_its_hostname(job_logs):
     for log in job_logs:
         assert log.get("myhostname") is not None, f"Missing 'myhostname' in: {log}"
 
-def test_each_pod_knows_all_ranks(job_logs):
-    for log in job_logs:
-        assert len(log.get("ranks", [])) == 4, f"Pod just sees itself. Expected 'ranks' length 4 in: {log}"
-
 def test_each_pod_has_pmix_env_vars(job_logs):
     for log in job_logs:
         env = log.get("myenvs", {})
         assert env.get("PMIX_RANK") is not None, f"Pod was not mutated! Missing PMIX_RANK in: {log}"
         assert env.get("PMIX_NAMESPACE") is not None, f"Pod was not mutated! Missing PMIX_NAMESPACE in: {log}"
+
+def test_each_pod_knows_all_ranks(job_logs):
+    for log in job_logs:
+        assert len(log.get("ranks", [])) == 4, f"Pod just sees itself. Expected 'ranks' length 4 in: {log}"
