@@ -21,6 +21,7 @@ spec:
             kubepmix.dev/enabled: "true"
             kubepmix.dev/create: "true"
             kubepmix.dev/size: "2"
+            kubepmix.dev/containerRanks: "0"
         spec:
           backoffLimit: 0
           parallelism: 1
@@ -49,6 +50,7 @@ spec:
         metadata:
           labels:
             kubepmix.dev/enabled: "true"
+            kubepmix.dev/containerRanks: "1"
         spec:
           backoffLimit: 0
           parallelism: 1
