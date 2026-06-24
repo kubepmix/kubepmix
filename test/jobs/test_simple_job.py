@@ -41,7 +41,7 @@ def job_logs(k8s_client, core_v1):
 
     print(f"Waiting for Job {job_name} to complete...")
     wait_for_finalized_job(core_v1, job_name, size=4, timeout=120)
-    raw_logs = get_last_log_lines(core_v1, job_name)
+    raw_logs = get_last_log_lines(core_v1, f"job-name={job_name}")
     parsed = [json.loads(log) for log in raw_logs]
 
     yield parsed

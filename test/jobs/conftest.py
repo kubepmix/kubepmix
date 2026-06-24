@@ -22,13 +22,13 @@ def core_v1(k8s_client):
 
 # Read last log of all of the pods from the job.
 # Last log is expected to be in the special form of dict returned from jjlakis/simplempi image
-def get_last_log_lines(core_v1, job_name):
+def get_last_log_lines(core_v1, label_selector):
     pods = core_v1.list_namespaced_pod(
-        TEST_NAMESPACE, label_selector=f"job-name={job_name}"
+        TEST_NAMESPACE, label_selector=label_selector
     )
 
     if not pods.items:
-        pytest.fail(f"No pods found for job {job_name}")
+        pytest.fail(f"No pods found for label selector {label_selector}")
 
     last_logs = []
     for pod in pods.items:
