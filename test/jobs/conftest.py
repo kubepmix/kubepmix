@@ -1,5 +1,4 @@
 import pytest
-import time
 import os
 from kubernetes import client, config
 
@@ -20,24 +19,6 @@ def k8s_client():
 @pytest.fixture(scope="session")  
 def core_v1(k8s_client):
     return client.CoreV1Api(k8s_client)
-
-def wait_for_finalized_job(core_v1, job_name, size=4, timeout=120):
-    print(f"Waiting for job {job_name} in NS {TEST_NAMESPACE} to complete with timeout {timeout}s...")
-
-    deadline = time.time() + timeout
-
-    while time.time() < deadline:
-        pods = core_v1.list_namespaced_pod(
-            TEST_NAMESPACE, label_selector=f"job-name={job_name}"
-        )
-        if pods.items:
-            phases = [pod.status.phase for pod in pods.items]
-            print(f"Waiting for pods to finish, current phases: {phases}")
-            if all(phase in ("Succeeded", "Failed") for phase in phases) and len(phases) == size:
-                return phases
-        time.sleep(0.5)
-
-    pytest.fail(f"Job {job_name} did not complete within {timeout}s")
 
 # Read last log of all of the pods from the job.
 # Last log is expected to be in the special form of dict returned from jjlakis/simplempi image

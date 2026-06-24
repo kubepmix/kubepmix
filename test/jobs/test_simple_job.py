@@ -1,8 +1,27 @@
 import json
+import time
 import pytest
 import yaml
 from kubernetes import client, utils, dynamic
-from conftest import TEST_ID, TEST_NAMESPACE, wait_for_finalized_job, get_last_log_lines
+from conftest import TEST_ID, TEST_NAMESPACE, get_last_log_lines
+
+def wait_for_finalized_job(core_v1, job_name, size=4, timeout=120):
+    print(f"Waiting for job {job_name} in NS {TEST_NAMESPACE} to complete with timeout {timeout}s...")
+
+    deadline = time.time() + timeout
+
+    while time.time() < deadline:
+        pods = core_v1.list_namespaced_pod(
+            TEST_NAMESPACE, label_selector=f"job-name={job_name}"
+        )
+        if pods.items:
+            phases = [pod.status.phase for pod in pods.items]
+            print(f"Waiting for pods to finish, current phases: {phases}")
+            if all(phase in ("Succeeded", "Failed") for phase in phases) and len(phases) == size:
+                return phases
+        time.sleep(0.5)
+
+    pytest.fail(f"Job {job_name} did not complete within {timeout}s")
 
 @pytest.fixture(scope="module")
 def job_logs(k8s_client, core_v1):
