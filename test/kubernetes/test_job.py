@@ -30,19 +30,17 @@ def job_logs(k8s_client, core_v1):
         manifest = yaml.safe_load(f)
 
     # Inject name, namespace and special label to the example manifest
-    # KubePMIx is created from chart with ci.kubepmix.dev/test-id set to TEST_ID
     manifest["metadata"]["name"] = TEST_ID
     manifest["metadata"]["namespace"] = TEST_NAMESPACE
     manifest["metadata"]["labels"]["ci.kubepmix.dev/test-id"] = TEST_ID
     manifest["spec"]["template"]["metadata"] = {"labels": {"ci.kubepmix.dev/test-id": TEST_ID}}
-    
+
     print(f"Deploying manifest for test {TEST_ID} from {manifest_path}...")
     utils.create_from_dict(k8s_client, manifest)
-    job_name = manifest["metadata"]["name"]
 
-    print(f"Waiting for Job {job_name} to complete...")
-    wait_for_finalized_job(core_v1, job_name, size=4, timeout=120)
-    raw_logs = get_last_log_lines(core_v1, f"job-name={job_name}")
+    print(f"Waiting for Job {TEST_ID} to complete...")
+    wait_for_finalized_job(core_v1, TEST_ID, size=4, timeout=120)
+    raw_logs = get_last_log_lines(core_v1, f"job-name={TEST_ID}")
     parsed = [json.loads(log) for log in raw_logs]
 
     yield parsed
@@ -52,9 +50,9 @@ def job_logs(k8s_client, core_v1):
         api_version=manifest["apiVersion"],
         kind=manifest["kind"]
     )
-    print(f"Removing object {job_name}...")
+    print(f"Removing object {TEST_ID}...")
     resource.delete(
-        name=job_name,
+        name=TEST_ID,
         namespace=TEST_NAMESPACE,
         body=client.V1DeleteOptions(propagation_policy="Foreground")
     )

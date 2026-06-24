@@ -31,18 +31,24 @@ spec:
               terminationGracePeriodSeconds: 0
               containers:
                 - name: worker
-                  image: ghcr.io/jjlakis/simplempi:0.6.0
+                  image: ghcr.io/jjlakis/simplempi:0.5.0
                   env:
+                    - name: SLEEP_TIME
+                      value: "1"
+                    - name: SLEEP_COUNT
+                      value: "5"
                     - name: OMPI_MCA_mpi_ft_enable
                       value: "1"
                     - name: "RANK_SPECIFIC_DATA"
                       value: "I am rank 0, yo maan"
 
-                    # Run 1 All Gather
+                    # Run All Gather 10 times, 3 seconds apart, segfault on iteration 5.
                     - name: GATHER_COUNT
-                      value: "1"
+                      value: "10"
                     - name: GATHER_TIME
-                      value: "0"
+                      value: "3"
+                    - name: SEGFAULT_ON
+                      value: "5"
     - name: rank1
       replicas: 1
       template:
@@ -59,15 +65,19 @@ spec:
               terminationGracePeriodSeconds: 0
               containers:
                 - name: worker
-                  image: ghcr.io/jjlakis/simplempi:0.6.0
+                  image: ghcr.io/jjlakis/simplempi:0.5.0
                   env:
+                    - name: SLEEP_TIME
+                      value: "5"
+                    - name: SLEEP_COUNT
+                      value: "1"
                     - name: OMPI_MCA_mpi_ft_enable
                       value: "1"
                     - name: "RANK_SPECIFIC_DATA"
                       value: "I will do the job of rank 1"
 
-                    # Run 1 All Gather
+                    # Run All Gather 10 times, 3 seconds apart
                     - name: GATHER_COUNT
-                      value: "1"
+                      value: "10"
                     - name: GATHER_TIME
-                      value: "0"
+                      value: "3"
