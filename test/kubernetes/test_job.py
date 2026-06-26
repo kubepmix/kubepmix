@@ -1,12 +1,15 @@
 import json
+import logging
 import time
 import pytest
 import yaml
 from kubernetes import client, utils, dynamic
 from conftest import TEST_ID, TEST_NAMESPACE, get_last_log_lines
 
+log = logging.getLogger(__name__)
+
 def wait_for_finalized_job(core_v1, job_name, size=4, timeout=120):
-    print(f"Waiting for job {job_name} in NS {TEST_NAMESPACE} to complete with timeout {timeout}s...")
+    log.info(f"Waiting for job {job_name} in NS {TEST_NAMESPACE} to complete with timeout {timeout}s...")
 
     deadline = time.time() + timeout
 
@@ -16,7 +19,7 @@ def wait_for_finalized_job(core_v1, job_name, size=4, timeout=120):
         )
         if pods.items:
             phases = [pod.status.phase for pod in pods.items]
-            print(f"Waiting for pods to finish, current phases: {phases}")
+            log.info(f"Waiting for pods to finish, current phases: {phases}")
             if all(phase in ("Succeeded", "Failed") for phase in phases) and len(phases) == size:
                 return phases
         time.sleep(0.5)
@@ -35,10 +38,10 @@ def job_logs(k8s_client, core_v1):
     manifest["metadata"]["labels"]["ci.kubepmix.dev/test-id"] = TEST_ID
     manifest["spec"]["template"]["metadata"] = {"labels": {"ci.kubepmix.dev/test-id": TEST_ID}}
 
-    print(f"Deploying manifest for test {TEST_ID} from {manifest_path}...")
+    log.info(f"Deploying manifest for test {TEST_ID} from {manifest_path}...")
     utils.create_from_dict(k8s_client, manifest)
 
-    print(f"Waiting for Job {TEST_ID} to complete...")
+    log.info(f"Waiting for Job {TEST_ID} to complete...")
     wait_for_finalized_job(core_v1, TEST_ID, size=4, timeout=120)
     raw_logs = get_last_log_lines(core_v1, f"job-name={TEST_ID}")
     parsed = [json.loads(log) for log in raw_logs]
@@ -50,7 +53,7 @@ def job_logs(k8s_client, core_v1):
         api_version=manifest["apiVersion"],
         kind=manifest["kind"]
     )
-    print(f"Removing object {TEST_ID}...")
+    log.info(f"Removing object {TEST_ID}...")
     resource.delete(
         name=TEST_ID,
         namespace=TEST_NAMESPACE,
