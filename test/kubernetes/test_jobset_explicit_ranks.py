@@ -28,7 +28,7 @@ def wait_for_finalized_jobset(core_v1, jobset_name, size=4, timeout=120):
 
 @pytest.fixture(scope="module")
 def jobset_logs(k8s_client, core_v1):
-    manifest_path = "manifests/jobset.yaml"
+    manifest_path = "manifests/jobset-with-explicit-ranks.yaml"
     with open(manifest_path) as f:
         manifest = yaml.safe_load(f)
 

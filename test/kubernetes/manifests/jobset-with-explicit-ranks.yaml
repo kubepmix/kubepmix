@@ -3,15 +3,6 @@ kind: JobSet
 metadata:
   name: jobset
 spec:
-  #  failurePolicy:
-  #    maxRestarts: 10
-  #    restartStrategy: Recreate
-  #    rules:
-  #      - name: restartall
-  #        action: RestartJobSet
-  #        targetReplicatedJobs: []
-  #        onJobFailureReasons: []
-  #        onJobFailureMessagePatterns: []
   replicatedJobs:
     - name: rank0
       replicas: 1
