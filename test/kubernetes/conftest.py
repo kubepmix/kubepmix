@@ -40,3 +40,20 @@ def get_last_log_lines(core_v1, label_selector):
             pytest.fail(f"Failed to parse logs for pod {pod.metadata.name}: {e}")
 
     return last_logs
+
+
+def wait_for_pods_to_complete(core_v1, label_selector, expected_count, timeout=120):
+    import time
+    deadline = time.time() + timeout
+
+    while time.time() < deadline:
+        pods = core_v1.list_namespaced_pod(
+            TEST_NAMESPACE, label_selector=label_selector
+        )
+        if len(pods.items) == expected_count:
+            phases = [pod.status.phase for pod in pods.items]
+            if all(phase in ("Succeeded", "Failed") for phase in phases):
+                return phases
+        time.sleep(0.5)
+
+    pytest.fail(f"Pods with label selector {label_selector} did not complete within {timeout}s")

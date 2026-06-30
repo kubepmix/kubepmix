@@ -4,27 +4,9 @@ import time
 import pytest
 import yaml
 from kubernetes import client, dynamic
-from conftest import TEST_ID, TEST_NAMESPACE, get_last_log_lines
+from conftest import TEST_ID, TEST_NAMESPACE, get_last_log_lines, wait_for_pods_to_complete
 
 log = logging.getLogger(__name__)
-
-def wait_for_finalized_jobset(core_v1, jobset_name, size=4, timeout=120):
-    log.info(f"Waiting for jobset {jobset_name} in NS {TEST_NAMESPACE} to complete with timeout {timeout}s...")
-
-    deadline = time.time() + timeout
-
-    while time.time() < deadline:
-        pods = core_v1.list_namespaced_pod(
-            TEST_NAMESPACE, label_selector=f"jobset.sigs.k8s.io/jobset-name={jobset_name}"
-        )
-        if pods.items:
-            phases = [pod.status.phase for pod in pods.items]
-            log.info(f"Waiting for pods to finish, current phases: {phases}")
-            if all(phase in ("Succeeded", "Failed") for phase in phases) and len(phases) == size:
-                return phases
-        time.sleep(0.5)
-
-    pytest.fail(f"JobSet {jobset_name} did not complete within {timeout}s")
 
 @pytest.fixture(scope="module")
 def jobset_logs(k8s_client, core_v1):
@@ -53,7 +35,7 @@ def jobset_logs(k8s_client, core_v1):
     resource.create(body=manifest, namespace=TEST_NAMESPACE)
 
     log.info(f"Waiting for JobSet {TEST_ID} to complete...")
-    wait_for_finalized_jobset(core_v1, TEST_ID, size=2, timeout=120)
+    wait_for_pods_to_complete(core_v1, f"jobset.sigs.k8s.io/jobset-name={TEST_ID}", expected_count=2, timeout=120)
     raw_logs = get_last_log_lines(core_v1, f"jobset.sigs.k8s.io/jobset-name={TEST_ID}")
     parsed = [json.loads(log) for log in raw_logs]
 
