@@ -33,7 +33,7 @@ jobs:
       - name: Deploy test environment
         uses: ./.github/actions/deploy-test-env
         with:
-          name: ci-${{ github.run_id }}-kubepmix
+          name: ci-${{ github.run_id }}
           image: registry.registry:5000/${{ github.repository }}:${{ github.sha }}
 
       - name: Run Kubernetes tests
@@ -48,4 +48,4 @@ jobs:
         uses: ./.github/actions/destroy-test-env
         if: always()
         with:
-          name: ci-${{ github.run_id }}-kubepmix
+          name: ci-${{ github.run_id }}
