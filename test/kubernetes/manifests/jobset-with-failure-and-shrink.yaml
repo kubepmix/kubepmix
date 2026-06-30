@@ -3,17 +3,10 @@ kind: JobSet
 metadata:
   name: jobset
 spec:
-  #  failurePolicy:
-  #    maxRestarts: 10
-  #    restartStrategy: Recreate
-  #    rules:
-  #      - name: restartall
-  #        action: RestartJobSet
-  #        targetReplicatedJobs: []
-  #        onJobFailureReasons: []
-  #        onJobFailureMessagePatterns: []
+  failurePolicy:
+    maxRestarts: 0 # We also inject finalizer to prevent cleanup of Pods for the log collection - see test/README.md
   replicatedJobs:
-    - name: rank0
+    - name: rank0-failing
       replicas: 1
       template:
         metadata:
@@ -22,62 +15,55 @@ spec:
             kubepmix.dev/create: "true"
             kubepmix.dev/size: "2"
         spec:
+          ttlSecondsAfterFinished: 5
           backoffLimit: 0
           parallelism: 1
           completions: 1
           template:
             spec:
               restartPolicy: Never
-              terminationGracePeriodSeconds: 0
               containers:
                 - name: worker
-                  image: ghcr.io/jjlakis/simplempi:0.5.0
+                  image: ghcr.io/jjlakis/simplempi:0.6.0
                   env:
-                    - name: SLEEP_TIME
-                      value: "1"
-                    - name: SLEEP_COUNT
-                      value: "5"
                     - name: OMPI_MCA_mpi_ft_enable
                       value: "1"
                     - name: "RANK_SPECIFIC_DATA"
                       value: "I am rank 0, yo maan"
 
-                    # Run All Gather 10 times, 3 seconds apart, segfault on iteration 5.
+                    # Run All Gather 5 times, 1 seconds apart, segfault on iteration 2.
                     - name: GATHER_COUNT
-                      value: "10"
-                    - name: GATHER_TIME
-                      value: "3"
-                    - name: SEGFAULT_ON
                       value: "5"
-    - name: rank1
+                    - name: GATHER_TIME
+                      value: "1"
+                    - name: SEGFAULT_ON
+                      value: "2"
+
+    - name: rank1-surviving
       replicas: 1
       template:
         metadata:
           labels:
             kubepmix.dev/enabled: "true"
         spec:
+          ttlSecondsAfterFinished: 5
           backoffLimit: 0
           parallelism: 1
           completions: 1
           template:
             spec:
               restartPolicy: Never
-              terminationGracePeriodSeconds: 0
               containers:
                 - name: worker
-                  image: ghcr.io/jjlakis/simplempi:0.5.0
+                  image: ghcr.io/jjlakis/simplempi:0.6.0
                   env:
-                    - name: SLEEP_TIME
-                      value: "5"
-                    - name: SLEEP_COUNT
-                      value: "1"
                     - name: OMPI_MCA_mpi_ft_enable
                       value: "1"
                     - name: "RANK_SPECIFIC_DATA"
                       value: "I will do the job of rank 1"
 
-                    # Run All Gather 10 times, 3 seconds apart
+                    # Run All Gather 5 times, 1 seconds apart
                     - name: GATHER_COUNT
-                      value: "10"
+                      value: "5"
                     - name: GATHER_TIME
-                      value: "3"
+                      value: "1"
