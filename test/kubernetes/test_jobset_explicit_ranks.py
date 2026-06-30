@@ -1,4 +1,5 @@
 import json
+import time
 import logging
 import pytest
 import yaml
@@ -34,8 +35,22 @@ def jobset_logs(k8s_client, core_v1):
     log.info(f"Removing object {TEST_ID}...")
     resource.delete(
         name=TEST_ID,
-        namespace=TEST_NAMESPACE
+        namespace=TEST_NAMESPACE,
+        body=client.V1DeleteOptions(propagation_policy="Foreground")
     )
+    
+    # Waiting for object to be deleted
+    deadline = time.time() + 30
+    while time.time() < deadline:
+        try:
+            resource.get(name=TEST_ID, namespace=TEST_NAMESPACE)
+        except client.exceptions.ApiException as e:
+            if e.status == 404:
+                log.info(f"Object {TEST_ID} successfully deleted.")
+                break
+            else:
+                log.warning(f"Unexpected error while checking for deletion of {TEST_ID}: {e}")
+        time.sleep(1)
 
 def test_all_pods_finished(jobset_logs):
     assert len(jobset_logs) == 2
