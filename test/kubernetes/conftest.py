@@ -1,9 +1,7 @@
 import pytest
-import json
 import os
 import logging
-from kubernetes import client, config, dynamic
-import yaml
+from kubernetes import client, config
 
 log = logging.getLogger(__name__)
 

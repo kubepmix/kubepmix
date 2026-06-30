@@ -1,6 +1,5 @@
 import json
 import logging
-import time
 import pytest
 import yaml
 from kubernetes import client, dynamic
