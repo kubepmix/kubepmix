@@ -4,7 +4,7 @@ import time
 import pytest
 import yaml
 from kubernetes import client, dynamic
-from conftest import TEST_ID, TEST_NAMESPACE, get_last_log_lines, wait_for_pods_to_complete
+from conftest import TEST_ID, TEST_NAMESPACE, get_last_log_lines, wait_for_pods_to_complete, inject_test_metadata_to_manifest
 
 log = logging.getLogger(__name__)
 
@@ -15,16 +15,8 @@ def jobset_logs(k8s_client, core_v1):
         manifest = yaml.safe_load(f)
 
     # Inject name, namespace and a job-specific label to the example manifest
-    manifest["metadata"]["name"] = TEST_ID
-    manifest["metadata"]["namespace"] = TEST_NAMESPACE
-    manifest["metadata"]["labels"] = {"ci.kubepmix.dev/test-id": TEST_ID}
-    for job in manifest.get("spec", {}).get("replicatedJobs", []):
-        job["template"]["metadata"]["labels"]["ci.kubepmix.dev/test-id"] = TEST_ID
-        job["template"]["spec"]["template"]["metadata"] = {"labels": {"ci.kubepmix.dev/test-id": TEST_ID}}
-
-    # JobSet is a CRD, so utils.create_from_dict() can't resolve a typed API
-    # class for it (it would look for a non-existent JobsetX-k8sIoV1alpha2Api).
-    # The dynamic client works for any resource kind, including CRDs.
+    manifest = inject_test_metadata_to_manifest(manifest, TEST_ID, TEST_NAMESPACE)
+    
     dyn = dynamic.DynamicClient(k8s_client)
     resource = dyn.resources.get(
         api_version=manifest["apiVersion"],

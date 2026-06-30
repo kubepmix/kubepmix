@@ -4,23 +4,18 @@ import time
 import pytest
 import yaml
 from kubernetes import client, utils, dynamic
-from conftest import TEST_ID, TEST_NAMESPACE, get_last_log_lines, wait_for_pods_to_complete
+from conftest import TEST_ID, TEST_NAMESPACE, get_last_log_lines, wait_for_pods_to_complete, inject_test_metadata_to_manifest
 
 log = logging.getLogger(__name__)
 
 @pytest.fixture(scope="module")
 def job_logs(k8s_client, core_v1):
     manifest_path = "manifests/job.yaml"
+
     with open(manifest_path) as f:
         manifest = yaml.safe_load(f)
 
-    # Inject name, namespace and special label to the example manifest
-    manifest["metadata"]["name"] = TEST_ID
-    manifest["metadata"]["namespace"] = TEST_NAMESPACE
-    manifest["metadata"]["labels"]["ci.kubepmix.dev/test-id"] = TEST_ID
-    manifest["spec"]["template"]["metadata"] = {"labels": {"ci.kubepmix.dev/test-id": TEST_ID}}
-
-    log.info(f"Deploying manifest for test {TEST_ID} from {manifest_path}...")
+    manifest = inject_test_metadata_to_manifest(manifest, TEST_ID, TEST_NAMESPACE)
     utils.create_from_dict(k8s_client, manifest)
 
     log.info(f"Waiting for Job {TEST_ID} to complete...")
