@@ -27,16 +27,14 @@ def jobset_logs(k8s_client, core_v1):
 
     log.info(f"Waiting for JobSet {TEST_ID} to complete...")
     wait_for_pods_to_complete(core_v1, f"jobset.sigs.k8s.io/jobset-name={TEST_ID}", expected_count=2, timeout=120)
-    raw_logs = get_last_log_lines(core_v1, f"jobset.sigs.k8s.io/jobset-name={TEST_ID}")
-    parsed = [json.loads(log) for log in raw_logs]
+    parsed_logs = get_last_log_lines(core_v1, f"jobset.sigs.k8s.io/jobset-name={TEST_ID}")
 
-    yield parsed
+    yield parsed_logs
 
     log.info(f"Removing object {TEST_ID}...")
     resource.delete(
         name=TEST_ID,
-        namespace=TEST_NAMESPACE,
-        body=client.V1DeleteOptions(propagation_policy="Foreground")
+        namespace=TEST_NAMESPACE
     )
 
 def test_all_pods_finished(jobset_logs):

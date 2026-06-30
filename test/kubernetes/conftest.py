@@ -1,5 +1,6 @@
 import pytest
 import os
+import json
 import logging
 from kubernetes import client, config
 
@@ -61,13 +62,52 @@ def get_last_log_lines(core_v1, label_selector):
     for pod in pods.items:
         log_response = core_v1.read_namespaced_pod_log(pod.metadata.name, TEST_NAMESPACE, _preload_content=False)
         try:
-            log = log_response.data.decode("utf-8")
-            last_logs.append(log.strip().splitlines()[-1])
+            decoded_log = log_response.data.decode("utf-8")
+            last_logs.append(decoded_log.strip().splitlines()[-1])
         except Exception as e:
             pytest.fail(f"Failed to parse logs for pod {pod.metadata.name}: {e}")
 
-    return last_logs
+    # Parse logs
+    parsed_logs = []
+    for pod_log in last_logs:
+        try:
+            parsed_log = json.loads(pod_log)
+        except json.JSONDecodeError as e:
+            log.warning(f"Failed to parse last log line as JSON: {e}. Log line: {pod_log}")
+            parsed_log = {"lastline": pod_log}
 
+        parsed_logs.append(parsed_log)
+    return parsed_logs
+
+def patch_pods_with_finalizer(core_v1, test_id, test_namespace):
+    pods = core_v1.list_namespaced_pod(
+        namespace=test_namespace, label_selector=f"ci.kubepmix.dev/test-id={test_id}"
+    )
+
+    log.debug(f"Patching {len(pods.items)} pods with finalizer for test {test_id}...")
+    for pod in pods.items:
+        core_v1.patch_namespaced_pod(
+            name=pod.metadata.name,
+            namespace=test_namespace,
+            body={"metadata": {"finalizers": [f"test.kubepmix.dev/keep-for-logs-test-{test_id}"]}}
+        )
+
+def remove_pods_finalizer(core_v1, test_id, test_namespace):
+    pods = core_v1.list_namespaced_pod(
+        namespace=test_namespace, label_selector=f"ci.kubepmix.dev/test-id={test_id}"
+    )
+    log.debug(f"Removing finalizer from {len(pods.items)} pods for test {test_id}...")
+    for pod in pods.items:
+        core_v1.patch_namespaced_pod(
+            name=pod.metadata.name,
+            namespace=test_namespace,
+            body=[{"op": "remove", "path": "/metadata/finalizers"}]
+        )
+        
+        # Get current finalizers
+        current_finalizers = pod.metadata.finalizers or []
+        
+        log.info("Current finalizers: %s", current_finalizers)
 
 def wait_for_pods_to_complete(core_v1, label_selector, expected_count, timeout=120):
     import time

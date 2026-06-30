@@ -19,10 +19,9 @@ def job_logs(k8s_client, core_v1):
 
     log.info(f"Waiting for Job {TEST_ID} to complete...")
     wait_for_pods_to_complete(core_v1, f"job-name={TEST_ID}", expected_count=4, timeout=120)
-    raw_logs = get_last_log_lines(core_v1, f"job-name={TEST_ID}")
-    parsed = [json.loads(log) for log in raw_logs]
+    parsed_logs = get_last_log_lines(core_v1, f"job-name={TEST_ID}")
 
-    yield parsed
+    yield parsed_logs
 
     dyn = dynamic.DynamicClient(k8s_client)
     resource = dyn.resources.get(
