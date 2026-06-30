@@ -87,9 +87,9 @@ def test_there_is_just_one_rank_zero(jobset_logs):
     rank_0_logs = [log for log in jobset_logs if log.get("myrank") == 0]
     assert len(rank_0_logs) == 1, f"Expected exactly one pod with rank 0, found {len(rank_0_logs)}"
 
-def test_each_pod_knows_sees_correct_world_size(jobset_logs):
+def test_each_pod_sees_correct_world_size(jobset_logs):
     for log in jobset_logs:
-        assert len(log.get("ranks", [])) == 2, f"Pod just sees itself. Expected 'ranks' length 4 in: {log}"
+        assert len(log.get("ranks", [])) == 2, f"Pod just sees itself. Expected 'ranks' length 2 in: {log}"
 
 def test_rank_0_has_rank_specific_data(jobset_logs):
     # Find the log for rank 0
@@ -99,4 +99,3 @@ def test_rank_0_has_rank_specific_data(jobset_logs):
 
     assert rank_0_log["myenvs"].get("RANK_SPECIFIC_DATA") is not None, f"Rank 0 log does not contain expected 'RANK_SPECIFIC_DATA': {rank_0_log}"
     assert rank_0_log["myenvs"]["RANK_SPECIFIC_DATA"] == "I am rank 0, yo maan", f"Rank 0 log does not contain expected 'RANK_SPECIFIC_DATA' value: {rank_0_log}"
-

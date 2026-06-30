@@ -81,6 +81,6 @@ def test_there_is_just_one_rank_zero(job_logs):
     rank_0_logs = [log for log in job_logs if log.get("myrank") == 0]
     assert len(rank_0_logs) == 1, f"Expected exactly one pod with rank 0, found {len(rank_0_logs)}"
 
-def test_each_pod_knows_sees_correct_world_size(job_logs):
+def test_each_pod_sees_correct_world_size(job_logs):
     for log in job_logs:
         assert len(log.get("ranks", [])) == 4, f"Pod just sees itself. Expected 'ranks' length 4 in: {log}"
