@@ -13,7 +13,7 @@ spec:
           labels:
             kubepmix.dev/enabled: "true"
             kubepmix.dev/create: "true"
-            kubepmix.dev/size: "2"
+            kubepmix.dev/size: "3"
         spec:
           ttlSecondsAfterFinished: 5
           backoffLimit: 0
@@ -26,10 +26,8 @@ spec:
                 - name: worker
                   image: ghcr.io/jjlakis/simplempi:0.6.0
                   env:
-                    - name: OMPI_MCA_mpi_ft_enable
+                    - name: OMPI_MCA_mpi_ft_enable # enable ULFM
                       value: "1"
-                    - name: "RANK_SPECIFIC_DATA"
-                      value: "I am rank 0, yo maan"
 
                     # Run All Gather 5 times, 1 seconds apart, segfault on iteration 2.
                     - name: GATHER_COUNT
@@ -38,7 +36,6 @@ spec:
                       value: "1"
                     - name: SEGFAULT_ON
                       value: "2"
-
     - name: rank1-surviving
       replicas: 1
       template:
@@ -57,10 +54,34 @@ spec:
                 - name: worker
                   image: ghcr.io/jjlakis/simplempi:0.6.0
                   env:
-                    - name: OMPI_MCA_mpi_ft_enable
+                    - name: OMPI_MCA_mpi_ft_enable # enable ULFM
                       value: "1"
-                    - name: "RANK_SPECIFIC_DATA"
-                      value: "I will do the job of rank 1"
+
+                    # Run All Gather 5 times, 1 seconds apart
+                    - name: GATHER_COUNT
+                      value: "5"
+                    - name: GATHER_TIME
+                      value: "1"
+    - name: rank2-surviving
+      replicas: 1
+      template:
+        metadata:
+          labels:
+            kubepmix.dev/enabled: "true"
+        spec:
+          ttlSecondsAfterFinished: 5
+          backoffLimit: 0
+          parallelism: 1
+          completions: 1
+          template:
+            spec:
+              restartPolicy: Never
+              containers:
+                - name: worker
+                  image: ghcr.io/jjlakis/simplempi:0.6.0
+                  env:
+                    - name: OMPI_MCA_mpi_ft_enable # enable ULFM
+                      value: "1"
 
                     # Run All Gather 5 times, 1 seconds apart
                     - name: GATHER_COUNT

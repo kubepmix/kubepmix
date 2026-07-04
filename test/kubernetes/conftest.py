@@ -74,7 +74,7 @@ def get_last_log_lines(core_v1, label_selector):
             parsed_log = json.loads(pod_log)
         except json.JSONDecodeError as e:
             log.warning(f"Failed to parse last log line as JSON: {e}. Log line: {pod_log}")
-            parsed_log = {"lastline": pod_log}
+            parsed_log = {"failure": pod_log}
 
         parsed_logs.append(parsed_log)
     return parsed_logs
@@ -103,11 +103,6 @@ def remove_pods_finalizer(core_v1, test_id, test_namespace):
             namespace=test_namespace,
             body=[{"op": "remove", "path": "/metadata/finalizers"}]
         )
-
-        # Get current finalizers
-        current_finalizers = pod.metadata.finalizers or []
-        
-        log.info("Current finalizers: %s", current_finalizers)
 
 def wait_for_pods_to_complete(core_v1, label_selector, expected_count, timeout=120):
     import time
