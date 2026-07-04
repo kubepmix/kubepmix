@@ -1,52 +1,27 @@
-import json
-import logging
 import time
+import logging
 import pytest
 import yaml
 from kubernetes import client, utils, dynamic
-from conftest import TEST_ID, TEST_NAMESPACE, get_last_log_lines
+from conftest import TEST_ID, TEST_NAMESPACE, get_last_log_lines, wait_for_pods_to_complete, inject_test_metadata_to_manifest
 
 log = logging.getLogger(__name__)
-
-def wait_for_finalized_job(core_v1, job_name, size=4, timeout=120):
-    log.info(f"Waiting for job {job_name} in NS {TEST_NAMESPACE} to complete with timeout {timeout}s...")
-
-    deadline = time.time() + timeout
-
-    while time.time() < deadline:
-        pods = core_v1.list_namespaced_pod(
-            TEST_NAMESPACE, label_selector=f"job-name={job_name}"
-        )
-        if pods.items:
-            phases = [pod.status.phase for pod in pods.items]
-            log.info(f"Waiting for pods to finish, current phases: {phases}")
-            if all(phase in ("Succeeded", "Failed") for phase in phases) and len(phases) == size:
-                return phases
-        time.sleep(0.5)
-
-    pytest.fail(f"Job {job_name} did not complete within {timeout}s")
 
 @pytest.fixture(scope="module")
 def job_logs(k8s_client, core_v1):
     manifest_path = "manifests/job.yaml"
+
     with open(manifest_path) as f:
         manifest = yaml.safe_load(f)
 
-    # Inject name, namespace and special label to the example manifest
-    manifest["metadata"]["name"] = TEST_ID
-    manifest["metadata"]["namespace"] = TEST_NAMESPACE
-    manifest["metadata"]["labels"]["ci.kubepmix.dev/test-id"] = TEST_ID
-    manifest["spec"]["template"]["metadata"] = {"labels": {"ci.kubepmix.dev/test-id": TEST_ID}}
-
-    log.info(f"Deploying manifest for test {TEST_ID} from {manifest_path}...")
+    manifest = inject_test_metadata_to_manifest(manifest, TEST_ID, TEST_NAMESPACE)
     utils.create_from_dict(k8s_client, manifest)
 
     log.info(f"Waiting for Job {TEST_ID} to complete...")
-    wait_for_finalized_job(core_v1, TEST_ID, size=4, timeout=120)
-    raw_logs = get_last_log_lines(core_v1, f"job-name={TEST_ID}")
-    parsed = [json.loads(log) for log in raw_logs]
+    wait_for_pods_to_complete(core_v1, f"job-name={TEST_ID}", expected_count=4, timeout=120)
+    parsed_logs = get_last_log_lines(core_v1, f"job-name={TEST_ID}")
 
-    yield parsed
+    yield parsed_logs
 
     dyn = dynamic.DynamicClient(k8s_client)
     resource = dyn.resources.get(
@@ -59,6 +34,19 @@ def job_logs(k8s_client, core_v1):
         namespace=TEST_NAMESPACE,
         body=client.V1DeleteOptions(propagation_policy="Foreground")
     )
+    
+    # Waiting for object to be deleted
+    deadline = time.time() + 30
+    while time.time() < deadline:
+        try:
+            resource.get(name=TEST_ID, namespace=TEST_NAMESPACE)
+        except client.exceptions.ApiException as e:
+            if e.status == 404:
+                log.info(f"Object {TEST_ID} successfully deleted.")
+                break
+            else:
+                log.warning(f"Unexpected error while checking for deletion of {TEST_ID}: {e}")
+        time.sleep(1)
 
 def test_all_pods_finished(job_logs):
     assert len(job_logs) == 4

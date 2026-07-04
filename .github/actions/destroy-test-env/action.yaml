@@ -17,4 +17,4 @@ runs:
       env:
         HELM_DRIVER: configmap
       run: |
-        helm -n ${{ inputs.namespace }} delete ${{ inputs.name }} --wait --timeout 5m
+        helm -n ${{ inputs.namespace }} delete ${{ inputs.name }}-kubepmix --wait --timeout 5m
