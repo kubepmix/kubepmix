@@ -21,6 +21,6 @@ runs:
       env:
         HELM_DRIVER: configmap
       run: |
-        helm -n ${{ inputs.namespace }} upgrade --install ${{ inputs.name }} charts/kubepmix \
+        helm -n ${{ inputs.namespace }} upgrade --install ${{ inputs.name }}-kubepmix charts/kubepmix \
           --set-string "additionalObjectSelector.matchLabels.ci\.kubepmix\.dev/test-id=${{ inputs.name }}" \
           --set "server.image=${{ inputs.image }}" --wait

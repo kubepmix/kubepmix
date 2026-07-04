@@ -3,15 +3,6 @@ kind: JobSet
 metadata:
   name: jobset
 spec:
-  #  failurePolicy:
-  #    maxRestarts: 10
-  #    restartStrategy: Recreate
-  #    rules:
-  #      - name: restartall
-  #        action: RestartJobSet
-  #        targetReplicatedJobs: []
-  #        onJobFailureReasons: []
-  #        onJobFailureMessagePatterns: []
   replicatedJobs:
     - name: rank0
       replicas: 1
@@ -34,8 +25,6 @@ spec:
                 - name: worker
                   image: ghcr.io/jjlakis/simplempi:0.6.0
                   env:
-                    - name: OMPI_MCA_mpi_ft_enable
-                      value: "1"
                     - name: "RANK_SPECIFIC_DATA"
                       value: "I am rank 0, yo maan"
 
@@ -63,8 +52,6 @@ spec:
                 - name: worker
                   image: ghcr.io/jjlakis/simplempi:0.6.0
                   env:
-                    - name: OMPI_MCA_mpi_ft_enable
-                      value: "1"
                     - name: "RANK_SPECIFIC_DATA"
                       value: "I will do the job of rank 1"
 

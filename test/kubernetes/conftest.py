@@ -1,6 +1,11 @@
 import pytest
 import os
+import json
+import logging
 from kubernetes import client, config
+
+log = logging.getLogger(__name__)
+
 
 # Test ID is both NS name and release name, must be unique across all tests
 TEST_ID=os.getenv("TEST_ID", "test-job")
@@ -20,6 +25,29 @@ def k8s_client():
 def core_v1(k8s_client):
     return client.CoreV1Api(k8s_client)
 
+def inject_test_metadata_to_manifest(manifest, test_id, test_namespace):
+    # Inject name and namespace
+    manifest["metadata"]["name"] = test_id
+    manifest["metadata"]["namespace"] = test_namespace
+
+    # Inject a special label for the test, append if exists
+    if "labels" in manifest["metadata"]:
+        manifest["metadata"]["labels"]["ci.kubepmix.dev/test-id"] = test_id
+    else:
+        manifest["metadata"]["labels"] = {"ci.kubepmix.dev/test-id": test_id}
+
+    # If the manifest has replicated jobs (it's a jobset), inject labels into each job template
+    for job in manifest.get("spec", {}).get("replicatedJobs", []):
+        job["template"]["metadata"]["labels"]["ci.kubepmix.dev/test-id"] = test_id
+        job["template"]["spec"]["template"]["metadata"] = {"labels": {"ci.kubepmix.dev/test-id": test_id}}
+
+    # If it's a job, inject labels into the pod template
+    if "replicatedJobs" not in manifest.get("spec", {}):
+        if "spec" in manifest and "template" in manifest["spec"]:
+            manifest["spec"]["template"]["metadata"] = {"labels": {"ci.kubepmix.dev/test-id": TEST_ID}}
+
+    return manifest
+
 # Read last log of all of the pods from the job.
 # Last log is expected to be in the special form of dict returned from jjlakis/simplempi image
 def get_last_log_lines(core_v1, label_selector):
@@ -34,9 +62,61 @@ def get_last_log_lines(core_v1, label_selector):
     for pod in pods.items:
         log_response = core_v1.read_namespaced_pod_log(pod.metadata.name, TEST_NAMESPACE, _preload_content=False)
         try:
-            log = log_response.data.decode("utf-8")
-            last_logs.append(log.strip().splitlines()[-1])
+            decoded_log = log_response.data.decode("utf-8")
+            last_logs.append(decoded_log.strip().splitlines()[-1])
         except Exception as e:
             pytest.fail(f"Failed to parse logs for pod {pod.metadata.name}: {e}")
 
-    return last_logs
+    # Parse logs
+    parsed_logs = []
+    for pod_log in last_logs:
+        try:
+            parsed_log = json.loads(pod_log)
+        except json.JSONDecodeError as e:
+            log.warning(f"Failed to parse last log line as JSON: {e}. Log line: {pod_log}")
+            parsed_log = {"failure": pod_log}
+
+        parsed_logs.append(parsed_log)
+    return parsed_logs
+
+def patch_pods_with_finalizer(core_v1, test_id, test_namespace):
+    pods = core_v1.list_namespaced_pod(
+        namespace=test_namespace, label_selector=f"ci.kubepmix.dev/test-id={test_id}"
+    )
+
+    log.debug(f"Patching {len(pods.items)} pods with finalizer for test {test_id}...")
+    for pod in pods.items:
+        core_v1.patch_namespaced_pod(
+            name=pod.metadata.name,
+            namespace=test_namespace,
+            body={"metadata": {"finalizers": [f"test.kubepmix.dev/keep-for-logs-test-{test_id}"]}}
+        )
+
+def remove_pods_finalizer(core_v1, test_id, test_namespace):
+    pods = core_v1.list_namespaced_pod(
+        namespace=test_namespace, label_selector=f"ci.kubepmix.dev/test-id={test_id}"
+    )
+    log.debug(f"Removing finalizer from {len(pods.items)} pods for test {test_id}...")
+    for pod in pods.items:
+        core_v1.patch_namespaced_pod(
+            name=pod.metadata.name,
+            namespace=test_namespace,
+            body=[{"op": "remove", "path": "/metadata/finalizers"}]
+        )
+
+def wait_for_pods_to_complete(core_v1, label_selector, expected_count, timeout=120):
+    import time
+    deadline = time.time() + timeout
+
+    while time.time() < deadline:
+        pods = core_v1.list_namespaced_pod(
+            TEST_NAMESPACE, label_selector=label_selector
+        )
+        if len(pods.items) == expected_count:
+            phases = [pod.status.phase for pod in pods.items]
+            if all(phase in ("Succeeded", "Failed") for phase in phases):
+                return phases
+        time.sleep(0.5)
+
+    pytest.fail(f"Pods with label selector {label_selector} did not complete within {timeout}s")
+    
