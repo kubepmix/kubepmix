@@ -103,7 +103,7 @@ def remove_pods_finalizer(core_v1, test_id, test_namespace):
             namespace=test_namespace,
             body=[{"op": "remove", "path": "/metadata/finalizers"}]
         )
-        
+
         # Get current finalizers
         current_finalizers = pod.metadata.finalizers or []
         
