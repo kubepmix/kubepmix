@@ -1,0 +1,54 @@
+# Run KubePMIx tests on a custom OpenPMIx revision
+
+name: Test OpenPMIx revision
+run-name: "Test OpenPMIx (${{ github.event.inputs.repository }}@${{ github.event.inputs.revision }})"
+
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        required: true
+        default: "https://github.com/jjlakis/openpmix.git"
+      revision:
+        required: true
+        default: "2ef87ff3472a7706d41ead1e600eca9ebc7e13c9"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Run Test
+    runs-on: kubepmix-selfhosted-test
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: ./.github/actions/build-image
+        id: build-image
+        with:
+          tags: registry.registry:5000/${{ github.repository }}:${{ github.sha }}
+          build-args: |
+            OPENPMIX_REPO=${{ github.event.inputs.repository }}
+            OPENPMIX_REVISION=${{ github.event.inputs.revision }}
+
+      - name: Deploy test environment
+        uses: ./.github/actions/deploy-test-env
+        with:
+          name: ci-${{ github.run_id }}
+          image: registry.registry:5000/${{ github.repository }}:${{ github.sha }}
+
+      - name: Run Kubernetes tests
+        working-directory: test/kubernetes
+        env:
+          TEST_ID: ci-${{ github.run_id }}
+        shell: bash
+        run: |
+          pytest -sv
+
+      - name: Destroy test environment
+        uses: ./.github/actions/destroy-test-env
+        if: always()
+        with:
+          name: ci-${{ github.run_id }}
