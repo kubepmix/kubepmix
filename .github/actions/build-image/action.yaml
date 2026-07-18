@@ -4,6 +4,9 @@ description: "Build image"
 inputs:
   tags:
     description: "Image tags"
+  build-args:
+    description: "Build arguments"
+
 runs:
   using: "composite"
   steps:
@@ -24,3 +27,4 @@ runs:
         push: true
         tags: ${{ inputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
+        build-args: ${{ inputs.build-args }}
