@@ -28,7 +28,7 @@ jobs:
       - uses: ./.github/actions/build-image
         id: build-image
         with:
-          tags: registry.registry:5000/${{ github.repository }}:${{ github.sha }}
+          tags: registry.registry:5000/${{ github.repository }}:${{ github.sha }}-${{ github.event.inputs.revision }}
           build-args: |
             OPENPMIX_REPO=${{ github.event.inputs.repository }}
             OPENPMIX_REVISION=${{ github.event.inputs.revision }}
@@ -37,7 +37,7 @@ jobs:
         uses: ./.github/actions/deploy-test-env
         with:
           name: ci-${{ github.run_id }}
-          image: registry.registry:5000/${{ github.repository }}:${{ github.sha }}
+          image: registry.registry:5000/${{ github.repository }}:${{ github.sha }}-${{ github.event.inputs.revision }}
 
       - name: Run Kubernetes tests
         working-directory: test/kubernetes
