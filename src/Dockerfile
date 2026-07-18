@@ -1,6 +1,6 @@
 # TODO: Move to official PMIx (After merging fix for dmodex)
 ARG OPENPMIX_REPO=https://github.com/jjlakis/openpmix.git
-ARG OPENPMIX_REV=2ef87ff3472a7706d41ead1e600eca9ebc7e13c9
+ARG OPENPMIX_REVISION=2ef87ff3472a7706d41ead1e600eca9ebc7e13c9
 
 # Stage 1: build OpenPMIx + Python bindings
 FROM ubuntu:24.04 AS pmix-build
@@ -12,12 +12,12 @@ RUN apt-get update 1>/dev/null && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 ARG OPENPMIX_REPO
-ARG OPENPMIX_REV
+ARG OPENPMIX_REVISION
 
 RUN git clone ${OPENPMIX_REPO} /openpmix
 
 WORKDIR /openpmix
-RUN git checkout ${OPENPMIX_REV}
+RUN git checkout ${OPENPMIX_REVISION}
 RUN git submodule update --init
 RUN ./autogen.pl --quiet
 
