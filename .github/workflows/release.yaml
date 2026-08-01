@@ -82,8 +82,6 @@ jobs:
           tag: ${{ needs.build-image.outputs.version }}
           name: KubePMIx ${{ needs.build-image.outputs.version }}
           body: |
-            # KubePMIx ${{ needs.build-image.outputs.version }}
-            Branch: ${{ github.ref_name }} | Commit: [${{ github.sha }}](https://github.com/kubepmix/kubepmix/commit/${{ github.sha }})
             Image: [ghcr.io/${{ github.repository }}:${{ needs.build-image.outputs.version }}](https://github.com/kubepmix/kubepmix/pkgs/container/kubepmix?tag=${{ needs.build-image.outputs.version }})
             Helm Chart: [oci://ghcr.io/kubepmix/charts/kubepmix:${{ needs.build-image.outputs.version }}](https://github.com/kubepmix/kubepmix/pkgs/container/charts%2Fkubepmix/?tag=${{ needs.build-image.outputs.version }})
 

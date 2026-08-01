@@ -11,7 +11,7 @@ OpenPMIx server and Kubernetes admission webhook in one - built to run MPI Jobs 
 Make sure [cert-manager](https://cert-manager.io/) is installed on the cluster. Install KubePMIx with Helm Chart:
 
 ```
-helm -n kubepmix install kubepmix ghcr.io/kubepmix/charts/kubepmix --create-namespace
+helm -n kubepmix install kubepmix oci://ghcr.io/kubepmix/charts/kubepmix --create-namespace
 ```
 
 Label Job with `kubepmix.dev/enabled: "true"` to join all replicas to a single homogenous MPI world:
