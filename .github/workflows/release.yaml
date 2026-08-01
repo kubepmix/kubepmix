@@ -82,14 +82,14 @@ jobs:
           tag: ${{ needs.build-image.outputs.version }}
           name: KubePMIx ${{ needs.build-image.outputs.version }}
           body: |
-            # KubePMIx ${{ needs.build-image.outputs.version }} Release
+            # KubePMIx ${{ needs.build-image.outputs.version }}
             Branch: ${{ github.ref_name }} | Commit: [${{ github.sha }}](https://github.com/kubepmix/kubepmix/commit/${{ github.sha }})
             Image: [ghcr.io/${{ github.repository }}:${{ needs.build-image.outputs.version }}](https://github.com/kubepmix/kubepmix/pkgs/container/kubepmix?tag=${{ needs.build-image.outputs.version }})
-            Helm Chart: [ghcr.io/kubepmix/charts/kubepmix-${{ needs.build-image.outputs.version }}.tgz](https://github.com/kubepmix/kubepmix/pkgs/container/charts/kubepmix?tag=${{ needs.build-image.outputs.version }})
+            Helm Chart: [oci://ghcr.io/kubepmix/charts/kubepmix:${{ needs.build-image.outputs.version }}](https://github.com/kubepmix/kubepmix/pkgs/container/charts%2Fkubepmix/?tag=${{ needs.build-image.outputs.version }})
 
             ## Get started
             ```sh
-            helm -n kubepmix install kubepmix ghcr.io/kubepmix/charts/kubepmix --version ${{ needs.build-image.outputs.version }} --create-namespace
+            helm -n kubepmix install kubepmix oci://ghcr.io/kubepmix/charts/kubepmix --version ${{ needs.build-image.outputs.version }} --create-namespace
             ```
 
             And see [Running Jobs](https://github.com/kubepmix/kubepmix/blob/main/docs/jobs.md).
