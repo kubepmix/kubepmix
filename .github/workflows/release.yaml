@@ -44,9 +44,30 @@ jobs:
             ghcr.io/${{ github.repository }}:${{ steps.semver.outputs.version }}
             ghcr.io/${{ github.repository }}:latest
 
+  build-chart:
+    name: Build helm chart
+    runs-on: kubepmix-selfhosted
+    needs: build-image
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: ./.github/actions/build-chart
+        id: build-chart
+        with:
+          tag: ${{ needs.build-image.outputs.version }}
+
   create-release:
     name: Create release
-    needs: build-image
+    needs: [build-image, build-chart]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -61,5 +82,14 @@ jobs:
           tag: ${{ needs.build-image.outputs.version }}
           name: KubePMIx ${{ needs.build-image.outputs.version }}
           body: |
-            Release created from branch ${{ github.ref_name }} with commit ${{ github.sha }}.
-            Image: ghcr.io/${{ github.repository }}:${{ needs.build-image.outputs.version }}
+            # KubePMIx ${{ needs.build-image.outputs.version }} Release
+            Branch: ${{ github.ref_name }} | Commit: [${{ github.sha }}](https://github.com/kubepmix/kubepmix/commit/${{ github.sha }})
+            Image: [ghcr.io/${{ github.repository }}:${{ needs.build-image.outputs.version }}](https://github.com/kubepmix/kubepmix/pkgs/container/kubepmix?tag=${{ needs.build-image.outputs.version }})
+            Helm Chart: [ghcr.io/kubepmix/charts/kubepmix-${{ needs.build-image.outputs.version }}.tgz](https://github.com/kubepmix/kubepmix/pkgs/container/charts/kubepmix?tag=${{ needs.build-image.outputs.version }})
+
+            ## Get started
+            ```sh
+            helm -n kubepmix install kubepmix ghcr.io/kubepmix/charts/kubepmix --version ${{ needs.build-image.outputs.version }} --create-namespace
+            ```
+
+            And see [Running Jobs](https://github.com/kubepmix/kubepmix/blob/main/docs/jobs.md).
