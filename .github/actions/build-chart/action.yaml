@@ -9,6 +9,7 @@ runs:
   using: "composite"
   steps:
     - name: Package and push chart
+      shell: bash
       run: |
         helm package charts/kubepmix --version ${{ inputs.tag }} --app-version ${{ inputs.tag }}
         helm push kubepmix-${{ inputs.tag }}.tgz oci://ghcr.io/kubepmix/charts
