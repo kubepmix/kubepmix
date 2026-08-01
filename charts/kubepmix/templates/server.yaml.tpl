@@ -34,7 +34,7 @@ spec:
       serviceAccountName: {{ include "kubepmix.fullname" . }}
       containers:
         - name: {{ include "kubepmix.name" . }}
-          image: {{ .Values.server.image }}
+          image: {{ .Values.server.image | default (printf "ghcr.io/kubepmix/kubepmix:%s" .Chart.AppVersion ) | quote }}
           ports:
             - name: pmix
               containerPort: {{ .Values.server.pmix.port }}

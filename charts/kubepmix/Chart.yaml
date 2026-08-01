@@ -3,4 +3,4 @@ name: kubepmix
 description: A Helm chart for KubePMIx - MPI jobs launcher
 type: application
 version: 0.1.0
-appVersion: "0.0.12"
+appVersion: "0.0.61"
