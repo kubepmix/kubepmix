@@ -33,8 +33,8 @@ spec:
           image: ghcr.io/kubepmix/simplempi:latest
 ```
 
-Job replicas will receive consecutive ranks in the order they are created by the Job controller (so no order is guaranteed). Use Kubernetes topology contrains (`nodeSelector`, `nodeAffinity`, etc.) and device configuration (DRA, device plugins) to control number of ranks per node and number of devices and resources attached to each rank.
+Job replicas will receive consecutive ranks in the order they are intercepted by admission webhook - so no order is guaranteed. Use Kubernetes topology contrains (`nodeSelector`, `nodeAffinity`, etc.) and device configuration (DRA, device plugins) to control number of ranks per node and number of devices and resources attached to each rank.
 
 ### See more
 
-To run heterogenous replicas and bind nodes and devices to ranks, see: [Running JobSets](./jobsets.md)
+To run heterogenous replicas and bind nodes to ranks, see: [Running JobSets](./jobsets.md)
