@@ -1,21 +1,20 @@
 # MPI Jobs with KubePMIx
 
-KubePMIx _injects_ MPI context into Kubernetes Job replicas. Works similarly to `mpirun --pernode` - where order doesn't matter.
+KubePMIx _injects_ MPI context into Kubernetes Job replicas.
 
 ### Install KubePMIx
 
-To get started, install namespace-scoped KubePMIx:
+To get started, install KubePMIx:
 
 ```bash
-export NAMESPACE=myns
-helm -n $NAMESPACE install --set=namespaced="true" kubepmix ghcr.io/kubepmix/charts/kubepmix
+helm -n kubepmix install kubepmix oci://ghcr.io/kubepmix/charts/kubepmix --create-namespace
 ```
 
 See Helm Chart's [`README.md`](../charts/kubepmix/README.md) for deployment details.
 
 ### Deploy Job
 
-Label Job with `kubepmix.dev/enabled: "true"` to join all replicas to an MPI world:
+Label Job with `kubepmix.dev/enabled: "true"`:
 
 ```
 apiVersion: batch/v1
