@@ -33,7 +33,7 @@ spec:
           image: ghcr.io/kubepmix/simplempi:latest
 ```
 
-Job replicas will receive consecutive ranks in the order they are intercepted by admission webhook - so no order is guaranteed. Use Kubernetes topology contrains (`nodeSelector`, `nodeAffinity`, etc.) and device configuration (DRA, device plugins) to control number of ranks per node and number of devices and resources attached to each rank.
+KubePMIx will create the MPI world of 4 (as specified in `parallelism`). Job replicas will receive consecutive as they're intercepted by admission webhook - so no order is guaranteed. Use Kubernetes topology contrains (`nodeSelector`, `nodeAffinity`, etc.) and device configuration (DRA, device plugins) to control number of ranks per node and number of devices and resources attached to each rank.
 
 ### See more
 
