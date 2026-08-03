@@ -37,4 +37,5 @@ kubectl -n test-development get pods -l jobset.sigs.k8s.io/jobset-name=jobset -o
 
 # Pods should die without explicit delete as they have deletionTimestamp from Job controller...
 
+(Above is already [implemented](kubernetes/test_jobset_revoke_and_shrink_mpi_world.py))
 ```

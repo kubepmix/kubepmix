@@ -34,10 +34,10 @@ async def main():
 
     webhook_runner = None
     if KUBE_PMIX_WEBHOOK_ENABLED:
-        print("Webhook enabled, starting server...")
+        print("Kubernetes admission webhook enabled - starting server...")
         webhook_runner = await start_webhook(pmix_server, rank_tracker)
     else:
-        print("Webhook disabled, not starting server.")
+        print("Kubernetes admission webhook disabled - not starting server..")
 
     # Register handler for SIGINT & SIGTERM as stop event
     stop_event = asyncio.Event()
