@@ -37,4 +37,4 @@ See: [Running Jobs](docs/jobs.md), [Running JobSets](docs/jobsets.md) and [Runni
 
 # Learn more
 
-See [architecture.md](docs/architecture.md) for a comprehensive summary.
+See [KubePMIx architecture](docs/architecture.md).
