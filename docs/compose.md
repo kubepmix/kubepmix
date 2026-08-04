@@ -69,7 +69,7 @@ For example:
 simplempi0:
   image: ghcr.io/kubepmix/images/simplempi:latest
   environment:
-    # Rank information - usuallu set by setup_fork()
+    # Rank information - usually set by setup_fork()
     PMIX_SERVER_URI2: "kubepmix.1;tcp4://10.3.0.10:3333"
     PMIX_NAMESPACE: "mynamespace"
     PMIX_RANK: "0"
