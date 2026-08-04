@@ -11,4 +11,4 @@ spec:
       restartPolicy: Never
       containers:
         - name: worker
-          image: ghcr.io/jjlakis/simplempi:0.6.0
+          image: ghcr.io/kubepmix/images/simplempi:latest
