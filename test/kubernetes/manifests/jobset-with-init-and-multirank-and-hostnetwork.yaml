@@ -42,7 +42,7 @@ spec:
               terminationGracePeriodSeconds: 0
               initContainers:
                 - name: init
-                  image: ghcr.io/jjlakis/simplempi:0.5.0
+                  image: ghcr.io/kubepmix/images/simplempi:latest
                   env:
                     - name: SLEEP_TIME
                       value: "5"
@@ -52,7 +52,7 @@ spec:
                       value: "1"
               containers:
                 - name: worker0
-                  image: ghcr.io/jjlakis/simplempi:0.5.0
+                  image: ghcr.io/kubepmix/images/simplempi:latest
                   env:
                     - name: SLEEP_TIME
                       value: "5"
@@ -65,7 +65,7 @@ spec:
                     - name: GATHER_TIME
                       value: "3"
                 - name: worker1
-                  image: ghcr.io/jjlakis/simplempi:0.5.0
+                  image: ghcr.io/kubepmix/images/simplempi:latest
                   env:
                     - name: SLEEP_TIME
                       value: "5"
@@ -98,7 +98,7 @@ spec:
               terminationGracePeriodSeconds: 0
               initContainers:
                 - name: init
-                  image: ghcr.io/jjlakis/simplempi:0.5.0
+                  image: ghcr.io/kubepmix/images/simplempi:latest
                   env:
                     - name: SLEEP_TIME
                       value: "5"
@@ -108,7 +108,7 @@ spec:
                       value: "1"
               containers:
                 - name: worker2
-                  image: ghcr.io/jjlakis/simplempi:0.5.0
+                  image: ghcr.io/kubepmix/images/simplempi:latest
                   env:
                     - name: SLEEP_TIME
                       value: "5"
@@ -121,7 +121,7 @@ spec:
                     - name: GATHER_TIME
                       value: "3"
                 - name: worker3
-                  image: ghcr.io/jjlakis/simplempi:0.5.0
+                  image: ghcr.io/kubepmix/images/simplempi:latest
                   env:
                     - name: SLEEP_TIME
                       value: "5"
@@ -154,7 +154,7 @@ spec:
               terminationGracePeriodSeconds: 0
               initContainers:
                 - name: init
-                  image: ghcr.io/jjlakis/simplempi:0.5.0
+                  image: ghcr.io/kubepmix/images/simplempi:latest
                   env:
                     - name: SLEEP_TIME
                       value: "5"
@@ -164,7 +164,7 @@ spec:
                       value: "1"
               containers:
                 - name: worker4
-                  image: ghcr.io/jjlakis/simplempi:0.5.0
+                  image: ghcr.io/kubepmix/images/simplempi:latest
                   env:
                     - name: SLEEP_TIME
                       value: "5"
@@ -177,7 +177,7 @@ spec:
                     - name: GATHER_TIME
                       value: "3"
                 - name: worker5
-                  image: ghcr.io/jjlakis/simplempi:0.5.0
+                  image: ghcr.io/kubepmix/images/simplempi:latest
                   env:
                     - name: SLEEP_TIME
                       value: "5"

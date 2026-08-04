@@ -30,7 +30,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: worker
-          image: ghcr.io/kubepmix/simplempi:latest
+          image: ghcr.io/kubepmix/images/simplempi:latest
 ```
 
 See: [Running Jobs](docs/jobs.md), [Running JobSets](docs/jobsets.md) or [Running with docker-compose](docs/compose.md)

@@ -9,3 +9,6 @@ KUBE_PMIX_WEBHOOK_ENABLED = os.getenv('KUBE_PMIX_WEBHOOK_ENABLED', 'false').lowe
 KUBE_PMIX_WEBHOOK_PORT    = int(os.getenv('KUBE_PMIX_WEBHOOK_PORT', '8443'))
 KUBE_PMIX_TLS_CERT        = os.getenv('KUBE_PMIX_TLS_CERT', '/tls/tls.crt')
 KUBE_PMIX_TLS_KEY         = os.getenv('KUBE_PMIX_TLS_KEY',  '/tls/tls.key')
+
+# Plain HTTP healthcheck server port.
+KUBE_PMIX_HEALTHCHECK_PORT = int(os.getenv('KUBE_PMIX_HEALTHCHECK_PORT', '8080'))

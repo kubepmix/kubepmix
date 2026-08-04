@@ -17,6 +17,5 @@ spec:
     name: {{ printf "%s-selfsigned" (include "kubepmix.fullname" .) | quote }}
     kind: Issuer
   dnsNames:
-    - {{ include "kubepmix.fullname" . | quote }}
     - {{ printf "%s.%s.svc" (include "kubepmix.fullname" .) .Release.Namespace | quote }}
     - {{ printf "%s.%s.svc.cluster.local" (include "kubepmix.fullname" .) .Release.Namespace | quote }}
