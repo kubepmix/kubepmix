@@ -14,4 +14,4 @@ See [values.yaml](./values.yaml)
 
 ### See more
 
-Run Kubernetes [Jobs](./jobs.md) and [JobSets](./jobsets.md).
+Run Kubernetes [Jobs](../../docs/jobs.md) and [JobSets](../../docs/jobsets.md).
