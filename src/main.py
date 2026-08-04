@@ -7,6 +7,7 @@ import logging
 from server.kubepmixserver import KubePMIxServer
 from server.ranks import RankTracker
 from server.webhook import start_webhook
+from server.healthcheck import start_healthcheck_server
 
 from config import (
     KUBE_PMIX_NAMESPACE_NAME, KUBE_PMIX_JOB_SIZE,
@@ -34,10 +35,13 @@ async def main():
 
     webhook_runner = None
     if KUBE_PMIX_WEBHOOK_ENABLED:
-        print("Webhook enabled, starting server...")
+        print("Kubernetes admission webhook enabled - starting server...")
         webhook_runner = await start_webhook(pmix_server, rank_tracker)
     else:
-        print("Webhook disabled, not starting server.")
+        print("Kubernetes admission webhook disabled - not starting server..")
+
+    # Start healthcheck server
+    healthcheck_runner = await start_healthcheck_server(pmix_server)
 
     # Register handler for SIGINT & SIGTERM as stop event
     stop_event = asyncio.Event()
@@ -51,6 +55,7 @@ async def main():
     print("KubePMIx: shutting down")
     if webhook_runner is not None:
         await webhook_runner.cleanup()
+    await healthcheck_runner.cleanup()
     pmix_server.finalize()
 
 if __name__ == "__main__":

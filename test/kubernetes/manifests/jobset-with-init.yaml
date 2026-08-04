@@ -34,7 +34,7 @@ spec:
               terminationGracePeriodSeconds: 0
               initContainers:
                 - name: init
-                  image: ghcr.io/jjlakis/simplempi:0.5.0
+                  image: ghcr.io/kubepmix/images/simplempi:latest
                   env:
                     - name: SLEEP_TIME
                       value: "5"
@@ -44,7 +44,7 @@ spec:
                       value: "1"
               containers:
                 - name: worker
-                  image: ghcr.io/jjlakis/simplempi:0.5.0
+                  image: ghcr.io/kubepmix/images/simplempi:latest
                   env:
                     - name: SLEEP_TIME
                       value: "5"
@@ -77,7 +77,7 @@ spec:
               terminationGracePeriodSeconds: 0
               initContainers:
                 - name: init
-                  image: ghcr.io/jjlakis/simplempi:0.5.0
+                  image: ghcr.io/kubepmix/images/simplempi:latest
                   env:
                     - name: SLEEP_TIME
                       value: "5"
@@ -87,7 +87,7 @@ spec:
                       value: "1"
               containers:
                 - name: worker
-                  image: ghcr.io/jjlakis/simplempi:0.5.0
+                  image: ghcr.io/kubepmix/images/simplempi:latest
                   env:
                     - name: SLEEP_TIME
                       value: "5"
@@ -118,7 +118,7 @@ spec:
               terminationGracePeriodSeconds: 0
               initContainers:
                 - name: init
-                  image: ghcr.io/jjlakis/simplempi:0.5.0
+                  image: ghcr.io/kubepmix/images/simplempi:latest
                   env:
                     - name: SLEEP_TIME
                       value: "5"
@@ -128,7 +128,7 @@ spec:
                       value: "1"
               containers:
                 - name: worker
-                  image: ghcr.io/jjlakis/simplempi:0.5.0
+                  image: ghcr.io/kubepmix/images/simplempi:latest
                   env:
                     - name: SLEEP_TIME
                       value: "5"
