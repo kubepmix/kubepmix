@@ -54,7 +54,7 @@ spec:
               terminationGracePeriodSeconds: 0
               containers:
                 - name: worker
-                  image: ghcr.io/jjlakis/simplempi:0.6.0
+                  image: ghcr.io/kubepmix/images/simplempi:latest
                   env:
                     - name: "RANK_SPECIFIC_DATA"
                       value: "I am rank 0, yo maan"
@@ -81,7 +81,7 @@ spec:
               terminationGracePeriodSeconds: 0
               containers:
                 - name: worker
-                  image: ghcr.io/jjlakis/simplempi:0.6.0
+                  image: ghcr.io/kubepmix/images/simplempi:latest
                   env:
                     - name: "RANK_SPECIFIC_DATA"
                       value: "I will do the job of rank 1"
