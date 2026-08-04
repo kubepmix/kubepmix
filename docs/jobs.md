@@ -10,7 +10,7 @@ To get started, install KubePMIx:
 helm -n kubepmix install kubepmix oci://ghcr.io/kubepmix/charts/kubepmix --create-namespace
 ```
 
-See Helm Chart's [`README.md`](../charts/kubepmix/README.md) for deployment details.
+See [Helm Chart](../charts/kubepmix) for deployment details.
 
 ### Deploy Job
 
