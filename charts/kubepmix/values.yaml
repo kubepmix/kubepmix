@@ -1,4 +1,5 @@
 # When true - inject namespaceSelector to Release namespace in the Mutating webhook
+# Note: Cluster-wide permissions are still required to create namespaced KubePMIx, as we create MutatingWebhookConfiguration
 namespaced: false
 
 # additional job & pod selector for mutating webhook. useful for CI jobs collocated in a single namespace
