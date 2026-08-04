@@ -1,9 +1,11 @@
 networks:
+  # "Management" network - between PMIx server and clients
   pmix-net:
     driver: bridge
     ipam:
       config:
         - subnet: 10.3.0.0/24
+  # MPI BTL network - between MPI ranks
   mpi-btl-net:
     driver: bridge
     ipam:
@@ -12,7 +14,8 @@ networks:
 
 services:
   server:
-    image: ghcr.io/kubepmix/kubepmix:0.0.80
+    # image: ghcr.io/kubepmix/kubepmix:0.0.80
+    image: smiec3
     environment:
       # Bootstrap namespace
       KUBE_PMIX_NAMESPACE_NAME: "mynamespace"
@@ -24,6 +27,14 @@ services:
 
       # Required
       PMIX_MCA_psec: "none" # Do not check processes UID and GUID
+
+    healthcheck:
+      test: ["CMD", "python3", "is_healthy.py"]
+      start_period: 3s
+      interval: 5s
+      timeout: 1s
+      retries: 5
+
     networks:
       pmix-net:
         ipv4_address: 10.3.0.10 # Fix address, DNS not supported in pmix server uri
@@ -44,13 +55,17 @@ services:
       OMPI_MCA_btl: "tcp,self"
       OMPI_MCA_btl_tcp_if_include: "10.199.0.0/24" # Use mpi-btl-net for MPI communication
 
-      # Application settings - sleep 5 seconds
+      # Application settings, run 5 all gathers with 1 second in between, sleep 5 second
+      GATHER_TIME: "1"
+      GATHER_COUNT: "5"
       SLEEP_TIME: "1"
       SLEEP_COUNT: "5"
 
-    #depends_on:
-    #  server:
-    #    condition: service_started
+    depends_on:
+      server:
+        condition: service_healthy
+        restart: true # Restart when server restarts
+
     networks:
       - pmix-net
       - mpi-btl-net
@@ -67,22 +82,21 @@ services:
       PMIX_SECURITY_MODE: "none"
       PMIX_GDS_MODULE: "hash"
 
-      # Application settings - sleep 1 second
+      # Application settings, run 5 all gathers with 1 second in between, sleep 1 second
       SLEEP_TIME: "1"
       SLEEP_COUNT: "1"
+      GATHER_TIME: "1"
+      GATHER_COUNT: "5"
 
       # BTL settings
       OMPI_MCA_btl: "tcp,self"
       OMPI_MCA_btl_tcp_if_include: "10.199.0.0/24" # Use mpi-btl-net for MPI communication
 
-      #OMPI_MCA_mpi_ft_enable: "1"
-      #OMPI_MCA_btl_base_verbose: "20"
-
-      #OMPI_MCA_btl: "tcp"
-
     depends_on:
       server:
-        condition: service_started
+        condition: service_healthy
+        restart: true # Restart when server restarts
+
     networks:
       - pmix-net
       - mpi-btl-net
