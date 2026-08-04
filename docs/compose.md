@@ -58,7 +58,7 @@ services:
 
 In your MPI workers, set:
 
-- `PMIX_SERVER_URI2`, `PMIX_NAMESPACE` and `PMIX_RANK` - server and namespace information
+- `PMIX_SERVER_URI2`, `PMIX_NAMESPACE` and `PMIX_RANK` - server and namespace information.
 - `PMIX_SECURITY_MODE` - required to be `none`
 - `PMIX_GDS_MODULE` - required to be `hash`
 - `OMPI_MCA_*` - MPI client's settings, like BTL or fault tolerance settings.
@@ -69,7 +69,7 @@ For example:
 simplempi0:
   image: ghcr.io/kubepmix/images/simplempi:latest
   environment:
-    # Rank information - usually set by setup_fork()
+    # Rank information - usuallu set by setup_fork()
     PMIX_SERVER_URI2: "kubepmix.1;tcp4://10.3.0.10:3333"
     PMIX_NAMESPACE: "mynamespace"
     PMIX_RANK: "0"
