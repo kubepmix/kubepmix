@@ -14,8 +14,7 @@ networks:
 
 services:
   server:
-    # image: ghcr.io/kubepmix/kubepmix:0.0.80
-    image: smiec3
+    image: ghcr.io/kubepmix/kubepmix:latest
     environment:
       # Bootstrap namespace
       KUBE_PMIX_NAMESPACE_NAME: "mynamespace"
