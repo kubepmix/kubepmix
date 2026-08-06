@@ -12,7 +12,7 @@ The main motivation of KubePMIx is to be able to run MPI Jobs on Kubernetes clus
 
 MPI is peer-to-peer in runtime - processes communicate with each other directly, without proxy server. The challenge is to make all the peers aware of each other's endpoints at the process startup. For example, when MPI processes communicate through TCP (TCP Byte-Transfer-Layer is used), each peer needs to know other peers' IP address and port in the network.
 
-When peer process calls `MPI_Init()` - the `PMIx_Fence()` is called. The role of fence is to commit your local endpoint's data to others, and - more importantly - **wait until everyone publishes its endpoint**. When "exchange" is completed - the services flow without the intermediary server. The endpoint exchange must happen through a central OpenPMIx server, which will make sure everyone commited their endpoints before letting everyone continue.
+When peer process calls `MPI_Init()` - the `PMIx_Fence()` is called. The role of fence is to commit your local endpoint's data to others, and - more importantly - **wait until everyone publishes their endpoint**. When this collective exchange is completed - the services flow without the intermediary server. Unless one of the . The endpoint exchange must happen through a central OpenPMIx server, which will make sure everyone commited their endpoints before letting everyone continue.
 
 MPI process reads the OpenPMIx server data by reading env vars - `PMIX_SERVER_URI2`, `PMIX_NAMESPACE` and `PMIX_RANK`. This is the only required configuration for MPI process.
 
@@ -24,8 +24,17 @@ PMIX_NAMESPACE=1839595521
 PMIX_RANK=0
 ```
 
-Indeed every MPI peer launched by `prterun` gets its own **local** OpenPMIx server, accessible via `127.0.0.1`. What `prterun` does is:
+Indeed every MPI peer launched by `prterun` gets its own **local** OpenPMIx server, accessible via `127.0.0.1`. These servers are launched on every target node of the `prterun` job, usually using SSH.
 
-- Launches OpenPMIx servers on all the targetted hosts (in )
+- Launches OpenPMIx servers on all the targetted hosts (PLM)
+- Starts the process with mutated environment variables (including `PMIX_SERVER_URI2`)
+
+This is the architecture of `prte`.
+
+KubePMIx is for the MPI client the same thing that `prted` is in the usual circuimstances. It's its local server that lets to run `PMIX_Fence()`.
+
+Also: Passing signals for ULFM
+
+Stuff is built-in into OpenPMIx
 
 ### Diagram
