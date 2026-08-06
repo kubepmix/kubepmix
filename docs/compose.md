@@ -1,6 +1,6 @@
 # MPI jobs with docker-compose
 
-KubePMIx can be used as standalone OpenPMIx server for docker compose MPI workloads. See [docker-compose.yaml](../docker-compose.yaml) for a ready-to-use example.
+KubePMIx can be used as standalone OpenPMIx server for docker compose MPI workloads. The only caveat is: IP address of the PMIx server must be known in advance, DNS is not supported. See [docker-compose.yaml](../docker-compose.yaml) for a ready-to-use example.
 
 ### Server
 

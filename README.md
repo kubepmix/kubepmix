@@ -33,7 +33,7 @@ spec:
           image: ghcr.io/kubepmix/images/simplempi:latest
 ```
 
-See: [Running Jobs](docs/jobs.md), [Running JobSets](docs/jobsets.md) and [Running with docker-compose](docs/compose.md).
+See how to run with [Kubernetes Jobs](docs/jobs.md), [JobSets](docs/jobsets.md), [standalone Pods](docs/pods.md), or [run with docker-compose](docs/compose.md).
 
 # Learn more
 
