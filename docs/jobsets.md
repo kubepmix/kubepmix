@@ -1,6 +1,6 @@
 # MPI JobSets with KubePMIx
 
-KubePMIx _injects_ MPI context into JobSet Job's replicas. JobSets are useful in the scenarios where different pods must hold different configurations (like environment variables). It's an equivalent for using colon (`:`) in `mpirun`.
+KubePMIx _injects_ MPI context into JobSet Job's replicas. JobSets are useful when different pods must hold different configurations (like environment variables). It's an equivalent for using colon (`:`) in `mpirun`.
 
 ### Install KubePMIx
 
@@ -97,7 +97,7 @@ See: [`test_jobset_explicit_ranks.py`](../test/kubernetes/manifests/jobset-with-
 
 There is an unlikely race condition scenario: one of the Pod started and run `MPI_Init()` before the rank 0 job is even admitted (PMIx namespace is not created). To avoid this, gang scheduling enforcement is recommended.
 
-KubePMIx creates new namespace on every attempt of the JobSet, so on restart pods start over in a fresh namespace.
+KubePMIx creates an OpenPMIx namespace on every attempt of the JobSet, so pods start over in a fresh namespace every time when JobSet restarts.
 
 ### See more
 
