@@ -10,9 +10,11 @@ The main motivation of KubePMIx is to be able to run MPI Jobs on Kubernetes clus
 
 ### Role OpenPMIx in MPI jobs
 
-MPI is peer-to-peer in runtime - processes communicate with each other directly, without proxy server. The challenge is to make all the peers aware of each other's endpoints at the process startup. For example, when MPI processes communicate through TCP (TCP Byte-Transfer-Layer is used), each peer needs to know other peers' IP address and port in the network.
+MPI is peer-to-peer at runtime — processes communicate with each other directly, without any intermediary proxy server. The one prerequisite this imposes is that every process must exchange its endpoint information with all peers, so that direct peer-to-peer connections can be established.
 
-When peer process calls `MPI_Init()` - the `PMIx_Fence()` is called. The role of fence is to commit your local endpoint's data to others, and - more importantly - **wait until everyone publishes their endpoint**. When this collective exchange is completed - the services flow without the intermediary server. Unless one of the . The endpoint exchange must happen through a central OpenPMIx server, which will make sure everyone commited their endpoints before letting everyone continue.
+For example, when MPI processes communicate over TCP (using the TCP Byte-Transfer-Layer), each peer needs to know the IP address and port of every other peer on the network.
+
+When a peer process initializes itself in the MPI world (calls `MPI_Init()`), it invokes `PMIx_Fence()` underneath. The role of the fence is to publish your local endpoint data to the others and — more importantly — to **wait until every peer has published its own endpoint**. Once this collective exchange completes, communication flows directly between peers, with no intermediary server involved. The exchange itself, however, must go through a central OpenPMIx server, which guarantees that all processes have committed their endpoints before any of them is allowed to proceed.
 
 MPI process reads the OpenPMIx server data by reading env vars - `PMIX_SERVER_URI2`, `PMIX_NAMESPACE` and `PMIX_RANK`. This is the only required configuration for MPI process.
 
@@ -26,15 +28,15 @@ PMIX_RANK=0
 
 Indeed every MPI peer launched by `prterun` gets its own **local** OpenPMIx server, accessible via `127.0.0.1`. These servers are launched on every target node of the `prterun` job, usually using SSH.
 
-- Launches OpenPMIx servers on all the targetted hosts (PLM)
-- Starts the process with mutated environment variables (including `PMIX_SERVER_URI2`)
+In summary, `prte`:
 
-This is the architecture of `prte`.
+- Launches OpenPMIx servers on all targeted hosts (via the PLM)
+- Starts each process with a mutated environment (including `PMIX_SERVER_URI2`)
 
-KubePMIx is for the MPI client the same thing that `prted` is in the usual circuimstances. It's its local server that lets to run `PMIX_Fence()`.
-
-Also: Passing signals for ULFM
-
-Stuff is built-in into OpenPMIx
+For the MPI client, KubePMIx plays the same role that prted plays under normal circumstances: it is the local server that enables `PMIx_Fence()` to run. All the Fence logic is included in OpenPMIx.
 
 ### Diagram
+
+<p align="center">
+  <img src="./diagram.png" />
+</p>
