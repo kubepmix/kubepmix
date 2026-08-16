@@ -93,12 +93,13 @@ spec:
                       value: "0"
 ```
 
-See: [`test_jobset_explicit_ranks.py`](../test/kubernetes/manifests/jobset-with-explicit-ranks.yaml)
+See: [`test_jobset_explicit_ranks.py`](../test/kubernetes/test_jobset_explicit_ranks.py)
 
-There is an unlikely race condition scenario: one of the Pod started and run `MPI_Init()` before the rank 0 job is even admitted (PMIx namespace is not created). To avoid this, gang scheduling enforcement is recommended.
+_WARNING:_ There is an unlikely race condition scenario: one of the Pod started and run `MPI_Init()` before the rank 0 job is even admitted (PMIx namespace is not created). To avoid this, gang scheduling enforcement is recommended.
 
 KubePMIx creates an OpenPMIx namespace on every attempt of the JobSet, so pods start over in a fresh namespace every time when JobSet restarts.
 
 ### See more
 
+a
 See [MPI operations](./operations.md) for fault tolerance (ULFM) and modex monitoring.

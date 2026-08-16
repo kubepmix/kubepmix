@@ -6,9 +6,9 @@ KubePMIx works seamlessly with ULFM (the built-in OpenPMIx server handles signal
 
 - Must be compiled with MPI ULFM (`mpi-ext.h`).
 - Must implement failure and shrink of MPI communicator. See [example](https://github.com/kubepmix/images/blob/main/simplempi/app.cpp#L188).
-- Must have `OMPI_MCA_mpi_ft_enable` set.
+- Must have `OMPI_MCA_mpi_ft_enable` set to `1`.
 
-See [jobset-with-failure-and-shrink.yaml](../test/kubernetes/manifests/jobset-with-failure-and-shrink.yaml) - manifest used in the test framework to test failure and shrink capability.
+See [jobset-with-failure-and-shrink.yaml](../test/kubernetes/manifests/jobset-with-failure-and-shrink.yaml) - manifest used in the test framework.
 
 ### Monitor modex
 
