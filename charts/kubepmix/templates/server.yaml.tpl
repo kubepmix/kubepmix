@@ -36,25 +36,18 @@ spec:
         - name: {{ include "kubepmix.name" . }}
           image: {{ .Values.server.image | default (printf "ghcr.io/kubepmix/kubepmix:%s" .Chart.AppVersion ) | quote }}
           ports:
-            - name: pmix
-              containerPort: {{ .Values.server.pmix.port }}
-              protocol: TCP
             - name: webhook
-              containerPort: {{ .Values.server.webhook.port }}
+              containerPort: 8443
               protocol: TCP
           env:
-            {{- range .Values.server.pmix.envs }}
+            {{- range .Values.server.envs }}
             - name: {{ .name }}
               value: {{ .value | quote }}
             {{- end }}
-            - name: PMIX_MCA_ptl_tcp_ipv4_port
-              value: {{ .Values.server.pmix.port | quote }}
             - name: PMIX_MCA_psec
               value: "none" # Do not check processes UID and GUID
             - name: KUBE_PMIX_WEBHOOK_ENABLED
               value: "true"
-            - name: KUBE_PMIX_WEBHOOK_PORT
-              value: {{ .Values.server.webhook.port | quote }}
             - name: KUBE_PMIX_TLS_CERT
               value: /tls/tls.crt
             - name: KUBE_PMIX_TLS_KEY
@@ -83,10 +76,6 @@ spec:
     app.kubernetes.io/name: {{ include "kubepmix.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
   ports:
-    - name: pmix
-      port: {{ .Values.server.pmix.port }}
-      targetPort: pmix
-      protocol: TCP
     - name: webhook
       port: 443
       targetPort: webhook

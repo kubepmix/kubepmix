@@ -1,5 +1,5 @@
-# When true - inject namespaceSelector to Release namespace in the Mutating webhook
-# Note: Cluster-wide permissions are still required to create namespaced KubePMIx, as we create MutatingWebhookConfiguration
+# When true - only intercept jobs from the release namespace
+# Note: Cluster-wide permissions are still required to create namespaced KubePMIx, as we create MutatingWebhookConfiguration (we just add namespace selector to it)
 namespaced: false
 
 # additional job & pod selector for mutating webhook. useful for CI jobs collocated in a single namespace
@@ -8,12 +8,12 @@ namespaced: false
 #     ci.kubepmix.dev/job-id: "123456"
 
 server:
-  # Custom image. Default: ghcr.io/kubepmix/kubepmix:{{ .Chart.AppVersion }}
+  # Default: ghcr.io/kubepmix/kubepmix:{{ .Chart.AppVersion }}
   # image: ghcr.io/kubepmix/kubepmix:0.0.61
-  webhook:
-    port: 8443
-  pmix:
-    port: 3333
-    envs:
-      - name: PMIX_MCA_ptl_tcp_if_include
-        value: "eth0"
+
+  # Env vars
+  envs:
+    - name: PMIX_MCA_ptl_tcp_ipv4_port
+      value: "3333"
+    - name: PMIX_MCA_ptl_tcp_if_include
+      value: "eth0"
