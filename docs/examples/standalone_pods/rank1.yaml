@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: rank1
+  labels:
+    app: rank1
+spec:
+  restartPolicy: Never
+  containers:
+    - name: rank1
+      image: ghcr.io/kubepmix/images/simplempi:latest
+      env:
+        # Rank information - usually set by setup_fork()
+        - name: PMIX_SERVER_URI2
+          value: "kubepmix.1;tcp4://10.43.43.43:3333"
+        - name: PMIX_NAMESPACE
+          value: "mynamespace"
+        - name: PMIX_RANK
+          value: "1"
+        # Required
+        - name: PMIX_SECURITY_MODE
+          value: "none"
+        - name: PMIX_GDS_MODULE
+          value: "hash"
+        # Application settings, run 5 all gathers with 1 second in between, sleep 5 second
+        - name: GATHER_TIME
+          value: "1"
+        - name: GATHER_COUNT
+          value: "5"
+        - name: SLEEP_TIME
+          value: "1"
+        - name: SLEEP_COUNT
+          value: "5"
