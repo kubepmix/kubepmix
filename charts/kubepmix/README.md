@@ -4,7 +4,7 @@ KubePMIx - OpenPMIx server & Kubernetes admission webhook in one - built to run 
 
 ### Created resources
 
-- `cert.yaml.tpl` - cert-manager-manager certificate for admission webhook
+- `cert.yaml.tpl` - cert-manager-managed certificate for admission webhook
 - `server.yaml.tpl` - KubePMIx deployment
 - `webhook.yaml.tpl` - MutatingAdmissionWebhook that intercepts and mutates Jobs, JobSets and Pods.
 
