@@ -36,3 +36,7 @@ BTL TCP interface can be set by `OMPI_MCA_btl_tcp_if_include` on the client. For
 ```
 
 _WARNING_: For other BTLs / PMLs, the verbosity will be limited, PRs welcome.
+
+### See more
+
+See [architecture.md](./architecture.md).

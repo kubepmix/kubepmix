@@ -37,4 +37,4 @@ KubePMIx will create the MPI world of 4 (as specified in `parallelism`). Job rep
 
 ### See more
 
-To run heterogenous replicas and bind nodes to ranks, see: [Running JobSets](./jobsets.md)
+To run heterogenous replicas and bind nodes to ranks, see: [Running JobSets](./jobsets.md).
