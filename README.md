@@ -4,7 +4,7 @@
 
 # KubePMIx
 
-OpenPMIx server and Kubernetes admission webhook in one - built to run MPI Jobs on Kubernetes, without relying on `mpirun`.
+OpenPMIx server and Kubernetes admission webhook server in one - built to run MPI Jobs on Kubernetes. 
 
 # Quickstart
 
