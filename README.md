@@ -4,7 +4,7 @@
 
 # KubePMIx
 
-OpenPMIx server and Kubernetes admission webhook in one - built to run MPI Jobs natively on Kubernetes.
+OpenPMIx server and Kubernetes admission webhook in one - built to run MPI Jobs on Kubernetes, without relying on `mpirun`.
 
 # Quickstart
 
@@ -14,7 +14,7 @@ Make sure [cert-manager](https://cert-manager.io/) is installed on the cluster. 
 helm -n kubepmix install kubepmix oci://ghcr.io/kubepmix/charts/kubepmix --create-namespace
 ```
 
-Label Job with `kubepmix.dev/enabled: "true"` to join all replicas to a single homogenous MPI world:
+Label Job with `kubepmix.dev/enabled: "true"` to join all replicas to an MPI world:
 
 ```
 apiVersion: batch/v1
