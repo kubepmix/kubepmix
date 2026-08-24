@@ -27,7 +27,7 @@ RUN make -j$(nproc) 1>/dev/null && make install 1>/dev/null
 RUN cp /openpmix/bindings/python/build/lib.linux-x86_64-cpython-312/*.so /usr/lib/python3/dist-packages/ 
 
 # Stage 2: Runtime. With merged stages: 687 MB. With python slim with deps: 245MB.
-FROM python:3.12-slim as runtime
+FROM python:3.14-slim as runtime
 
 RUN apt-get update 1>/dev/null && apt-get install -y --no-install-recommends \
     libevent-dev libhwloc-dev zlib1g-dev 1>/dev/null \
