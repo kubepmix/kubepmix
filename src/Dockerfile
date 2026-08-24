@@ -3,7 +3,7 @@ ARG OPENPMIX_REPO=https://github.com/jjlakis/openpmix.git
 ARG OPENPMIX_REVISION=2ef87ff3472a7706d41ead1e600eca9ebc7e13c9
 
 # Stage 1: build OpenPMIx + Python bindings
-FROM ubuntu:24.04 AS pmix-build
+FROM ubuntu:26.04 AS pmix-build
 
 RUN apt-get update 1>/dev/null && apt-get install -y --no-install-recommends \
     git autoconf libtool build-essential perl \
