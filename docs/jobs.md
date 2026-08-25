@@ -1,6 +1,6 @@
 # MPI Jobs with KubePMIx
 
-KubePMIx _injects_ MPI context into Kubernetes Job replicas. When Job i
+KubePMIx _injects_ MPI context into Kubernetes Job replicas.
 
 ### Install KubePMIx
 
